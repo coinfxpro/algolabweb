@@ -71,14 +71,12 @@ class Algolab:
         """
         API istekleri için ortak method
         """
-        url = self.config.get_api_url()
-        
         if not login:
             checker = self.make_checker(endpoint, payload)
             headers = {
                 "APIKEY": self.api_key,
                 "Checker": checker,
-                "Authorization": self.hash  # Authorization header eklendi
+                "Authorization": self.hash
             }
         else:
             headers = {"APIKEY": self.api_key}
@@ -86,16 +84,16 @@ class Algolab:
         print("\n=== API REQUEST DETAILS ===")
         print(f"Config API URL: {self.config.api_url}")
         print(f"Config API Hostname: {self.config.api_hostname}")
-        print(f"Base URL: {url}")
         print(f"Endpoint: {endpoint}")
-        print(f"Full URL: {url + endpoint}")
+        print(f"Full URL: {self.config.api_url + endpoint}")
         print(f"Headers: {headers}")
         print(f"Payload: {payload}")
         
-        response = requests.post(
-            url + endpoint,
+        response = self.session.post(
+            self.config.api_url + endpoint,
             json=payload,
-            headers=headers
+            headers=headers,
+            verify=False  # SSL doğrulamasını devre dışı bırak
         )
         
         print("\n=== API RESPONSE DETAILS ===")
