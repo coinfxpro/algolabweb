@@ -33,15 +33,26 @@ class Algolab:
 
     def encrypt(self, text):
         """
-        Orijinal API'nin şifreleme yöntemi
+        API istekleri için şifreleme
         """
-        iv = b'\0' * 16
-        key = base64.b64decode(self.api_code.encode('utf-8'))
-        cipher = AES.new(key, AES.MODE_CBC, iv)
-        bytes_text = text.encode()
-        padded_bytes = pad(bytes_text, 16)
-        encrypted = cipher.encrypt(padded_bytes)
-        return base64.b64encode(encrypted).decode("utf-8")
+        try:
+            print("\n=== ENCRYPTION DETAILS ===")
+            print(f"Text to encrypt: {text}")
+            print(f"API Code: {self.api_code}")
+            
+            iv = b'\0' * 16
+            key = base64.b64decode(self.api_code.encode('utf-8'))
+            cipher = AES.new(key, AES.MODE_CBC, iv)
+            bytes_text = text.encode()
+            padded_bytes = pad(bytes_text, 16)
+            encrypted = cipher.encrypt(padded_bytes)
+            result = base64.b64encode(encrypted).decode("utf-8")
+            
+            print(f"Encrypted result: {result}")
+            return result
+        except Exception as e:
+            print(f"Encryption error: {str(e)}")
+            raise
 
     def make_checker(self, endpoint, payload):
         """
