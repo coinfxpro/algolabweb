@@ -10,20 +10,39 @@ class Algolab:
         self.token = ""
         self.hash = ""
         self.session = requests.Session()
-        self.api_key = config.get_api_key()
+        
+        # API Key formatını düzenle
+        api_key = config.get_api_key()
+        if api_key.startswith("API-"):
+            self.api_key = api_key
+            self.api_code = api_key[4:]  # "API-" kısmını çıkar
+        else:
+            self.api_key = f"API-{api_key}"
+            self.api_code = api_key
+            
+        # Base64 padding kontrolü
+        padding_length = len(self.api_code) % 4
+        if padding_length:
+            self.api_code += "=" * (4 - padding_length)
+            
         self.headers = {"APIKEY": self.api_key}
+        print(f"API Key: {self.api_key}, Code: {self.api_code}")  # Debug için
 
     def encrypt(self, text):
         """
         Orijinal API'nin şifreleme yöntemi
         """
-        iv = b'\0' * 16
-        key = base64.b64decode(self.api_key.encode('utf-8'))
-        cipher = AES.new(key, AES.MODE_CBC, iv)
-        bytes_text = text.encode()
-        padded_bytes = pad(bytes_text, 16)
-        encrypted = cipher.encrypt(padded_bytes)
-        return base64.b64encode(encrypted).decode("utf-8")
+        try:
+            iv = b'\0' * 16
+            key = base64.b64decode(self.api_code)
+            cipher = AES.new(key, AES.MODE_CBC, iv)
+            bytes_text = text.encode()
+            padded_bytes = pad(bytes_text, 16)
+            encrypted = cipher.encrypt(padded_bytes)
+            return base64.b64encode(encrypted).decode("utf-8")
+        except Exception as e:
+            print(f"Encryption error: {str(e)}")  # Debug için
+            raise Exception(f"Encryption failed: {str(e)}")
 
     def make_checker(self, endpoint, payload):
         """
