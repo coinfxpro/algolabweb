@@ -14,7 +14,6 @@ class Algolab:
         self.hash = ""
         self.session = requests.Session()
         self.headers = {"APIKEY": self.config.get_api_key()}
-        self.login()
 
     def encrypt(self, text):
         key = b'1234567890123456'
@@ -29,7 +28,7 @@ class Algolab:
             payload = {"username": username, "password": password}
             
             response = requests.post(
-                f"{self.config.get_api_url()}/auth/login",
+                f"{self.config.get_api_url()}/auth/login/user",
                 json=payload,
                 headers=self.headers
             )
@@ -38,7 +37,7 @@ class Algolab:
                 data = response.json()
                 if data["success"]:
                     self.token = data["content"]["token"]
-                    return self.login_control()
+                    return True
                 else:
                     raise Exception(f"Login failed: {data['message']}")
             else:
@@ -46,9 +45,8 @@ class Algolab:
         except Exception as e:
             raise Exception(f"Login error: {str(e)}")
 
-    def login_control(self):
+    def login_control(self, sms_code):
         try:
-            sms_code = input("Enter SMS code: ")  # In Streamlit, we'll handle this differently
             token = self.encrypt(self.token)
             sms = self.encrypt(sms_code)
             payload = {'token': token, 'password': sms}

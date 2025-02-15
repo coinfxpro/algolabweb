@@ -2,24 +2,37 @@ import streamlit as st
 
 class AlgolabConfig:
     def __init__(self):
-        try:
-            # Streamlit Cloud'da secrets.toml'dan oku
-            self.api_key = st.secrets["algolab"]["api_key"]
-            self.username = st.secrets["algolab"]["username"]
-            self.password = st.secrets["algolab"]["password"]
-            self.hostname = "www.algolab.com.tr"
-            self.api_hostname = f"https://{self.hostname}"
-            self.api_url = self.api_hostname + "/api"
-            self.socket_url = f"wss://{self.hostname}/api/ws"
-        except Exception as e:
-            # Lokal geliştirme için
-            self.api_key = "API-KEY" #API Key'inizi Buraya Giriniz
-            self.username = "TC veya Denizbank Kullanici Adi" #TC veya Denizbank Kullanıcı Adınızı Buraya Giriniz
-            self.password = "Şifre" #Denizbank İnternet Bankacılığı Şifrenizi Buraya Giriniz
-            self.hostname = "www.algolab.com.tr"
-            self.api_hostname = f"https://{self.hostname}"
-            self.api_url = self.api_hostname + "/api"
-            self.socket_url = f"wss://{self.hostname}/api/ws"
+        self.api_key = None
+        self.username = None
+        self.password = None
+        self.hostname = "www.algolab.com.tr"
+        self.api_hostname = f"https://{self.hostname}"
+        self.api_url = self.api_hostname + "/api"
+        self.socket_url = f"wss://{self.hostname}/api/ws"
+
+    @property
+    def api_key(self):
+        return self._api_key
+
+    @api_key.setter
+    def api_key(self, value):
+        self._api_key = value
+
+    @property
+    def username(self):
+        return self._username
+
+    @username.setter
+    def username(self, value):
+        self._username = value
+
+    @property
+    def password(self):
+        return self._password
+
+    @password.setter
+    def password(self, value):
+        self._password = value
 
     def get_api_key(self):
         return self.api_key
