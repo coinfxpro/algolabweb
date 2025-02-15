@@ -41,32 +41,22 @@ class Algolab:
             password = self.encrypt(self.config.get_password())
             payload = {"username": username, "password": password}
             
+            url = f"{self.config.get_api_url()}{self.config.URL_LOGIN_USER}"
+            print(f"Login URL: {url}")  # Debug için
+            
             response = requests.post(
-                f"{self.config.get_api_url()}/api/LoginUser",
+                url,
                 json=payload,
                 headers=self.headers
             )
+            
+            print(f"Login Response: {response.text}")  # Debug için
             
             if response.status_code == 200:
                 data = response.json()
                 if data["success"]:
                     self.token = data["content"]["token"]
-                    
-                    # SMS gönderimi için ikinci istek
-                    sms_response = requests.post(
-                        f"{self.config.get_api_url()}/api/LoginSendSms",
-                        json={"token": self.encrypt(self.token)},
-                        headers=self.headers
-                    )
-                    
-                    if sms_response.status_code == 200:
-                        sms_data = sms_response.json()
-                        if sms_data["success"]:
-                            return True
-                        else:
-                            raise Exception(f"SMS request failed: {sms_data['message']}")
-                    else:
-                        raise Exception(f"SMS request failed with status {sms_response.status_code}")
+                    return True
                 else:
                     raise Exception(f"Login failed: {data['message']}")
             else:
@@ -83,11 +73,16 @@ class Algolab:
             sms = self.encrypt(sms_code)
             payload = {'token': token, 'password': sms}
             
+            url = f"{self.config.get_api_url()}{self.config.URL_LOGIN_CONTROL}"
+            print(f"Login Control URL: {url}")  # Debug için
+            
             response = requests.post(
-                f"{self.config.get_api_url()}/api/LoginUserControl",
+                url,
                 json=payload,
                 headers=self.headers
             )
+            
+            print(f"Login Control Response: {response.text}")  # Debug için
             
             if response.status_code == 200:
                 data = response.json()
@@ -105,7 +100,7 @@ class Algolab:
         try:
             payload = {'symbol': symbol}
             response = requests.post(
-                f"{self.config.get_api_url()}/api/GetEquityInfo",
+                f"{self.config.get_api_url()}{self.config.URL_GET_EQUITY_INFO}",
                 json=payload,
                 headers={"HASH": self.hash, **self.headers}
             )
@@ -120,7 +115,7 @@ class Algolab:
     def get_positions(self):
         try:
             response = requests.post(
-                f"{self.config.get_api_url()}/api/InstantPosition",
+                f"{self.config.get_api_url()}{self.config.URL_GET_INSTANT_POSITION}",
                 json={},
                 headers={"HASH": self.hash, **self.headers}
             )
@@ -148,7 +143,7 @@ class Algolab:
                 payload["OrderType"] = "Market"
 
             response = requests.post(
-                f"{self.config.get_api_url()}/api/SendOrder",
+                f"{self.config.get_api_url()}{self.config.URL_SEND_ORDER}",
                 json=payload,
                 headers={"HASH": self.hash, **self.headers}
             )
@@ -163,7 +158,7 @@ class Algolab:
     def session_refresh(self):
         try:
             response = requests.post(
-                f"{self.config.get_api_url()}/api/SessionRefresh",
+                f"{self.config.get_api_url()}{self.config.URL_SESSION_REFRESH}",
                 json={},
                 headers={"HASH": self.hash, **self.headers}
             )
