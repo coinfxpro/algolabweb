@@ -5,9 +5,9 @@ class AlgolabConfig:
         self.api_key = None
         self.username = None
         self.password = None
-        self.hostname = "api.algolab.com.tr"  
+        self.hostname = "algolab.com.tr"  # api. ve www. kaldırdık
         self.api_hostname = f"https://{self.hostname}"
-        self.api_url = self.api_hostname  
+        self.api_url = self.api_hostname  # /api kısmını kaldırdık
         self.socket_url = f"wss://{self.hostname}/ws"  
 
         # API Endpoints
