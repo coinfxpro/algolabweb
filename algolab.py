@@ -16,26 +16,39 @@ class Algolab:
         self.session = requests.Session()
         
         # API Key formatını düzenle
-        try:
-            self.api_code = config.get_api_key().split("-")[1]
-        except:
-            self.api_code = config.get_api_key()
-        self.api_key = "API-" + self.api_code
-        
+        api_key = config.get_api_key()
+        if not api_key.startswith("API-"):
+            self.api_code = api_key
+            self.api_key = f"API-{api_key}"
+        else:
+            self.api_code = api_key.split("-")[1]
+            self.api_key = api_key
+            
         self.headers = {"APIKEY": self.api_key}
-        print(f"Initialized with API Key: {self.api_key}")  # Debug için
+        print(f"Initialized with API Key: {self.api_key}, API Code: {self.api_code}")  # Debug için
 
     def encrypt(self, text):
         """
         Orijinal API'nin şifreleme yöntemi
         """
-        iv = b'\0' * 16
-        key = base64.b64decode(self.api_code.encode('utf-8'))
-        cipher = AES.new(key, AES.MODE_CBC, iv)
-        bytes_text = text.encode()
-        padded_bytes = pad(bytes_text, 16)
-        encrypted = cipher.encrypt(padded_bytes)
-        return base64.b64encode(encrypted).decode("utf-8")
+        try:
+            if not self.api_code:
+                raise ValueError("API Code is empty")
+                
+            iv = b'\0' * 16
+            key = base64.b64decode(self.api_code.encode('utf-8'))
+            
+            if len(key) == 0:
+                raise ValueError(f"Invalid API key length after base64 decode. API Code: {self.api_code}")
+                
+            cipher = AES.new(key, AES.MODE_CBC, iv)
+            bytes_text = text.encode()
+            padded_bytes = pad(bytes_text, 16)
+            encrypted = cipher.encrypt(padded_bytes)
+            return base64.b64encode(encrypted).decode("utf-8")
+        except Exception as e:
+            print(f"Encryption error: {str(e)}")  # Debug için
+            raise
 
     def make_checker(self, endpoint, payload):
         """
