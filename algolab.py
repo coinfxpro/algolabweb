@@ -45,8 +45,19 @@ class Algolab:
             body = json.dumps(payload).replace(' ', '')
         else:
             body = ""
+            
+        print("\n=== CHECKER DETAILS ===")
+        print(f"API Key: {self.api_key}")
+        print(f"API Hostname: {self.config.api_hostname}")
+        print(f"Endpoint: {endpoint}")
+        print(f"Body: {body}")
+        
         data = self.api_key + self.config.api_hostname + endpoint + body
         checker = hashlib.sha256(data.encode('utf-8')).hexdigest()
+        
+        print(f"Data for checker: {data}")
+        print(f"Generated checker: {checker}")
+        
         return checker
 
     def post(self, endpoint, payload, login=False):
@@ -66,6 +77,8 @@ class Algolab:
             headers = {"APIKEY": self.api_key}
             
         print("\n=== API REQUEST DETAILS ===")
+        print(f"Config API URL: {self.config.api_url}")
+        print(f"Config API Hostname: {self.config.api_hostname}")
         print(f"Base URL: {url}")
         print(f"Endpoint: {endpoint}")
         print(f"Full URL: {url + endpoint}")
