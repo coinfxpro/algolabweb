@@ -22,6 +22,7 @@ class Algolab:
         self.api_key = "API-" + self.api_code
         
         self.headers = {"APIKEY": self.api_key}
+        print(f"Initialized with API Key: {self.api_key}")  # Debug için
 
     def encrypt(self, text):
         key = b'1234567890123456'
@@ -34,6 +35,8 @@ class Algolab:
         İlk login adımı - SMS gönderimi için
         """
         try:
+            print("\n=== LOGIN ATTEMPT ===")  # Debug için
+            
             if not self.api_key.startswith("API-"):
                 raise Exception("API Key must start with 'API-'")
                 
@@ -43,6 +46,8 @@ class Algolab:
             
             url = f"{self.config.get_api_url()}{self.config.URL_LOGIN_USER}"
             print(f"Login URL: {url}")  # Debug için
+            print(f"Headers: {self.headers}")  # Debug için
+            print(f"Payload: {payload}")  # Debug için
             
             response = requests.post(
                 url,
@@ -50,7 +55,9 @@ class Algolab:
                 headers=self.headers
             )
             
-            print(f"Login Response: {response.text}")  # Debug için
+            print(f"Status Code: {response.status_code}")  # Debug için
+            print(f"Response Headers: {dict(response.headers)}")  # Debug için
+            print(f"Response Text: {response.text}")  # Debug için
             
             if response.status_code == 200:
                 data = response.json()
@@ -60,8 +67,9 @@ class Algolab:
                 else:
                     raise Exception(f"Login failed: {data['message']}")
             else:
-                raise Exception(f"Login request failed: {response.text}")
+                raise Exception(f"Login request failed with status {response.status_code}: {response.text}")
         except Exception as e:
+            print(f"Login Exception: {str(e)}")  # Debug için
             raise Exception(f"Login error: {str(e)}")
 
     def login_control(self, sms_code):
@@ -69,12 +77,16 @@ class Algolab:
         İkinci login adımı - SMS doğrulama
         """
         try:
+            print("\n=== LOGIN CONTROL ATTEMPT ===")  # Debug için
+            
             token = self.encrypt(self.token)
             sms = self.encrypt(sms_code)
             payload = {'token': token, 'password': sms}
             
             url = f"{self.config.get_api_url()}{self.config.URL_LOGIN_CONTROL}"
             print(f"Login Control URL: {url}")  # Debug için
+            print(f"Headers: {self.headers}")  # Debug için
+            print(f"Payload: {payload}")  # Debug için
             
             response = requests.post(
                 url,
@@ -82,7 +94,9 @@ class Algolab:
                 headers=self.headers
             )
             
-            print(f"Login Control Response: {response.text}")  # Debug için
+            print(f"Status Code: {response.status_code}")  # Debug için
+            print(f"Response Headers: {dict(response.headers)}")  # Debug için
+            print(f"Response Text: {response.text}")  # Debug için
             
             if response.status_code == 200:
                 data = response.json()
@@ -92,8 +106,9 @@ class Algolab:
                 else:
                     raise Exception(f"Login control failed: {data['message']}")
             else:
-                raise Exception(f"Login control request failed: {response.text}")
+                raise Exception(f"Login control request failed with status {response.status_code}: {response.text}")
         except Exception as e:
+            print(f"Login Control Exception: {str(e)}")  # Debug için
             raise Exception(f"Login control error: {str(e)}")
 
     def get_equity_info(self, symbol):
