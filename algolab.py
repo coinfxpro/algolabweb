@@ -60,7 +60,7 @@ class Algolab:
             headers = {
                 "APIKEY": self.api_key,
                 "Checker": checker,
-                "Authorization": self.hash
+                "Hash": self.hash  # Authorization yerine Hash kullanıyoruz
             }
         else:
             headers = {"APIKEY": self.api_key}
@@ -221,13 +221,13 @@ class Algolab:
         except Exception as e:
             raise Exception(f"Session refresh error: {str(e)}")
 
-    def get_today_transactions(self):
+    def get_todays_transaction(self):  # Metod ismini config ile uyumlu hale getirdik
         """
         Günlük işlemleri ve bekleyen emirleri getirir
         """
         try:
             response = self.post(
-                endpoint=self.config.URL_GET_TODAY_TRANSACTIONS,
+                endpoint=self.config.URL_GET_TODAYS_TRANSACTION,  # Config'deki isimle aynı
                 payload={},
                 login=False
             )

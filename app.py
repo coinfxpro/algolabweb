@@ -221,7 +221,7 @@ def main():
             # Bekleyen Emirler
             st.subheader("⏳ Bekleyen Emirler")
             try:
-                transactions = st.session_state.algolab.get_today_transactions()
+                transactions = st.session_state.algolab.get_todays_transaction()  # Metod ismini güncelledik
                 if transactions and transactions.get("success"):
                     orders = transactions.get("content", [])
                     if orders:
