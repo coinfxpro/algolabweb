@@ -23,6 +23,7 @@ class Algolab:
 
     def login(self):
         try:
+            # İlk adım: Login isteği
             username = self.encrypt(self.config.get_username())
             password = self.encrypt(self.config.get_password())
             payload = {"username": username, "password": password}
@@ -37,7 +38,22 @@ class Algolab:
                 data = response.json()
                 if data["success"]:
                     self.token = data["content"]["token"]
-                    return True
+                    
+                    # İkinci adım: SMS gönderimi için istek
+                    sms_response = requests.post(
+                        f"{self.config.get_api_url()}/auth/login/sms",
+                        json={"token": self.encrypt(self.token)},
+                        headers=self.headers
+                    )
+                    
+                    if sms_response.status_code == 200:
+                        sms_data = sms_response.json()
+                        if sms_data["success"]:
+                            return True
+                        else:
+                            raise Exception(f"SMS request failed: {sms_data['message']}")
+                    else:
+                        raise Exception(f"SMS request failed with status {sms_response.status_code}")
                 else:
                     raise Exception(f"Login failed: {data['message']}")
             else:
