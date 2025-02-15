@@ -71,6 +71,7 @@ class Algolab:
         """
         API istekleri için ortak method
         """
+        url = self.config.api_url
         if not login:
             checker = self.make_checker(endpoint, payload)
             headers = {
@@ -80,27 +81,49 @@ class Algolab:
             }
         else:
             headers = {"APIKEY": self.api_key}
-            
+
         print("\n=== API REQUEST DETAILS ===")
-        print(f"Config API URL: {self.config.api_url}")
+        print(f"Config API URL: {url}")
         print(f"Config API Hostname: {self.config.api_hostname}")
         print(f"Endpoint: {endpoint}")
-        print(f"Full URL: {self.config.api_url + endpoint}")
+        print(f"Full URL: {url + endpoint}")
         print(f"Headers: {headers}")
         print(f"Payload: {payload}")
         
-        response = self.session.post(
-            self.config.api_url + endpoint,
-            json=payload,
-            headers=headers,
-            verify=False  # SSL doğrulamasını devre dışı bırak
-        )
+        # Orijinal API'deki gibi _request methodu kullanılıyor
+        response = self._request("POST", url, endpoint, payload, headers)
         
         print("\n=== API RESPONSE DETAILS ===")
         print(f"Status Code: {response.status_code}")
         print(f"Response Headers: {dict(response.headers)}")
         print(f"Response Text: {response.text}")
         
+        return response
+
+    def _request(self, method, url, endpoint, payload, headers):
+        """
+        Orijinal API'deki _request methodu
+        """
+        last_request = 0.0
+        LOCK = False
+        
+        while LOCK:
+            time.sleep(0.01)
+        LOCK = True
+        
+        try:
+            response = ""
+            if method == "POST":
+                t = time.time()
+                diff = t - last_request
+                wait_for = last_request > 0.0 and diff < 5.0  # son işlemden geçen süre 5 saniyeden küçükse bekle
+                if wait_for:
+                    time.sleep(5 - diff + 0.01)
+                response = requests.post(url + endpoint, json=payload, headers=headers, verify=False)
+                last_request = time.time()
+        finally:
+            LOCK = False
+            
         return response
 
     def login(self):
