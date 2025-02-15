@@ -220,3 +220,21 @@ class Algolab:
                 raise Exception(f"Failed to refresh session: {response.text}")
         except Exception as e:
             raise Exception(f"Session refresh error: {str(e)}")
+
+    def get_today_transactions(self):
+        """
+        Günlük işlemleri ve bekleyen emirleri getirir
+        """
+        try:
+            response = self.post(
+                endpoint=self.config.URL_GET_TODAY_TRANSACTIONS,
+                payload={},
+                login=False
+            )
+            
+            if response.status_code == 200:
+                return response.json()
+            else:
+                raise Exception(f"Failed to get today's transactions: {response.text}")
+        except Exception as e:
+            raise Exception(f"Get today's transactions error: {str(e)}")
