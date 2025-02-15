@@ -83,16 +83,28 @@ class Algolab:
         SMS doğrulaması yap
         """
         try:
-            token = self.encrypt(self.token)
+            # SMS kodunu ve token'ı şifrele
             sms = self.encrypt(sms_code)
-            payload = {"token": token, "password": sms}
+            token = self.encrypt(self.token)
+            
+            payload = {
+                "token": token,
+                "password": sms
+            }
+            
+            print(f"SMS Payload: {payload}")  # Debug için
             
             response = self.make_checker(self.config.URL_LOGIN_CONTROL, payload)
+            print(f"SMS Response: {response}")  # Debug için
+            
             if response.get("success"):
                 self.hash = response.get("result", {}).get("hash", "")
                 return True
             else:
-                raise Exception(f"SMS verification error: {response.get('message', 'Unknown error')}")
+                error_msg = response.get("message", "Unknown error")
+                print(f"SMS Error Message: {error_msg}")  # Debug için
+                raise Exception(error_msg)
+                
         except Exception as e:
             raise Exception(f"SMS verification error: {str(e)}")
 

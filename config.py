@@ -14,13 +14,13 @@ class AlgolabConfig:
         self.socket_url = f"wss://{self.hostname}/api/ws"  
 
         # API Endpoints
-        self.URL_LOGIN_USER = "/api/LoginUser"  
-        self.URL_LOGIN_CONTROL = "/api/LoginUserControl"
-        self.URL_GET_EQUITY_INFO = "/api/GetEquityInfo"
-        self.URL_GET_INSTANT_POSITION = "/api/InstantPosition"
-        self.URL_SEND_ORDER = "/api/SendOrder"
-        self.URL_SESSION_REFRESH = "/api/SessionRefresh"
-        self.URL_GET_TODAYS_TRANSACTION = "/api/TodaysTransaction"
+        self.URL_LOGIN_USER = "/LoginUser"  
+        self.URL_LOGIN_CONTROL = "/LoginUserControl"
+        self.URL_GET_EQUITY_INFO = "/GetEquityInfo"
+        self.URL_GET_INSTANT_POSITION = "/InstantPosition"
+        self.URL_SEND_ORDER = "/SendOrder"
+        self.URL_SESSION_REFRESH = "/SessionRefresh"
+        self.URL_GET_TODAYS_TRANSACTION = "/TodaysTransaction"
 
     def get_api_key(self):
         return self.api_key
