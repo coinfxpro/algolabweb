@@ -10,17 +10,23 @@ from Crypto.Util.Padding import pad
 from config import AlgolabConfig
 
 class Algolab:
-    def __init__(self, config: AlgolabConfig):
-        self.config = config
+    def __init__(self, api_key, username, password):
+        """
+        API'ye bağlanmak için gerekli bilgileri alır
+        """
+        try:
+            self.api_code = api_key.split("-")[1]
+        except:
+            self.api_code = api_key
+            
+        self.api_key = "API-" + self.api_code  # API key formatı: "API-XXXXX"
+        self.username = username
+        self.password = password
+        self.config = AlgolabConfig()
         self.token = ""
         self.hash = ""
+        self.sms_code = ""
         self.session = requests.Session()
-        
-        try:
-            self.api_code = config.get_api_key().split("-")[1]
-        except:
-            self.api_code = config.get_api_key()
-        self.api_key = "API-" + self.api_code
         
         self.headers = {"APIKEY": self.api_key}
         print(f"Initialized with API Key: {self.api_key}")  # Debug için
@@ -112,8 +118,8 @@ class Algolab:
             if not self.api_key.startswith("API-"):
                 raise Exception("API Key must start with 'API-'")
                 
-            username = self.encrypt(self.config.get_username())
-            password = self.encrypt(self.config.get_password())
+            username = self.encrypt(self.username)
+            password = self.encrypt(self.password)
             payload = {"username": username, "password": password}
             
             print(f"Full URL: {self.config.get_api_url() + self.config.URL_LOGIN_USER}")

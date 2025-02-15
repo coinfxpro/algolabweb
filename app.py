@@ -17,6 +17,8 @@ if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
 if 'waiting_for_sms' not in st.session_state:
     st.session_state.waiting_for_sms = False
+if 'sms_pending' not in st.session_state:
+    st.session_state.sms_pending = False
 
 def format_number(value):
     try:
@@ -26,17 +28,26 @@ def format_number(value):
 
 def handle_login():
     try:
-        config = AlgolabConfig()
-        config.api_key = st.session_state.api_key
-        config.username = st.session_state.username
-        config.password = st.session_state.password
+        api_key = st.session_state.get('api_key', '')
+        username = st.session_state.get('username', '')
+        password = st.session_state.get('password', '')
+
+        if not api_key or not username or not password:
+            st.error("Lütfen tüm bilgileri girin")
+            return
+
+        algolab = Algolab(api_key, username, password)
+        response = algolab.login()
         
-        algolab = Algolab(config)
-        if algolab.login():
+        if response and response.get('success'):
             st.session_state.algolab = algolab
-            st.session_state.waiting_for_sms = True
-            st.success("İlk aşama başarılı, SMS kodu bekleniyor...")
+            st.success("Giriş başarılı! SMS kodu bekleniyor...")
+            st.session_state.logged_in = True
+            st.session_state.sms_pending = True
             st.rerun()
+        else:
+            st.error(f"Giriş hatası: {response.get('message', 'Bilinmeyen hata')}")
+            
     except Exception as e:
         st.error(f"Giriş hatası: {str(e)}")
 
@@ -44,7 +55,7 @@ def handle_sms():
     try:
         if st.session_state.algolab.login_control(st.session_state.sms_code):
             st.session_state.logged_in = True
-            st.session_state.waiting_for_sms = False
+            st.session_state.sms_pending = False
             st.success("Giriş başarılı!")
             st.rerun()
     except Exception as e:
@@ -55,7 +66,7 @@ st.title("Algolab Trading")
 
 # Login olmamışsa login formu göster
 if not st.session_state.logged_in:
-    if not st.session_state.waiting_for_sms:
+    if not st.session_state.sms_pending:
         with st.form("login_form"):
             st.text_input("API Key", type="password", key="api_key")
             st.text_input("TC Kimlik No", key="username")
@@ -71,7 +82,7 @@ if not st.session_state.logged_in:
                 handle_sms()
                 
         if st.button("Geri Dön"):
-            st.session_state.waiting_for_sms = False
+            st.session_state.sms_pending = False
             st.session_state.algolab = None
             st.rerun()
 
