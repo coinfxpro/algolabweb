@@ -52,6 +52,7 @@ class Algolab:
         print(f"Endpoint: {endpoint}")
         print(f"Body: {body}")
         
+        # Orijinal API'deki gibi checker hesaplama
         data = self.api_key + self.config.api_hostname + endpoint + body
         checker = hashlib.sha256(data.encode('utf-8')).hexdigest()
         
@@ -71,7 +72,7 @@ class Algolab:
             headers = {
                 "APIKEY": self.api_key,
                 "Checker": checker,
-                "Hash": self.hash
+                "Authorization": self.hash  # Authorization header eklendi
             }
         else:
             headers = {"APIKEY": self.api_key}

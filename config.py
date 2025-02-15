@@ -10,8 +10,8 @@ class AlgolabConfig:
         self.api_url = self.api_hostname + "/api"  # /api ekledik
         self.socket_url = f"wss://{self.hostname}/api/ws"  # /api ekledik
 
-        # API Endpoints
-        self.URL_LOGIN_USER = "/LoginUser"  # /api prefix'ini kaldırdık
+        # API Endpoints - /api prefix'i kaldırıldı
+        self.URL_LOGIN_USER = "/LoginUser"
         self.URL_LOGIN_CONTROL = "/LoginUserControl"
         self.URL_SESSION_REFRESH = "/SessionRefresh"
         self.URL_SEND_ORDER = "/SendOrder"
