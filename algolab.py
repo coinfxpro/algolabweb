@@ -26,13 +26,15 @@ class Algolab:
         self.token = ""
         self.hash = ""
         self.sms_code = ""
-        self.session = requests.Session()
+        
+        # Orijinal header yapısı
+        self.headers = {"APIKEY": self.api_key}
         
         print(f"Initialized with API Key: {self.api_key}")  # Debug için
 
     def encrypt(self, text):
         """
-        API istekleri için şifreleme
+        Orijinal API'nin şifreleme yöntemi
         """
         try:
             print("\n=== ENCRYPTION DETAILS ===")
@@ -53,6 +55,67 @@ class Algolab:
             print(f"Encryption error: {str(e)}")
             raise
 
+    def make_checker(self, endpoint, payload):
+        """
+        API istekleri için checker oluşturma
+        """
+        if len(payload) > 0:
+            body = json.dumps(payload).replace(' ', '')
+        else:
+            body = ""
+            
+        print("\n=== CHECKER DETAILS ===")
+        print(f"API Key: {self.api_key}")
+        print(f"API Hostname: {self.config.api_hostname}")
+        print(f"Endpoint: {endpoint}")
+        print(f"Body: {body}")
+        
+        data = self.api_key + self.config.api_hostname + endpoint + body
+        checker = hashlib.sha256(data.encode('utf-8')).hexdigest()
+        
+        print(f"Data for checker: {data}")
+        print(f"Generated checker: {checker}")
+        
+        return checker
+
+    def post(self, endpoint, payload, login=False):
+        """
+        API istekleri için ortak method
+        """
+        url = self.config.api_url
+        
+        # Header yapısı - orijinal API ile aynı
+        if not login:
+            checker = self.make_checker(endpoint, payload)
+            headers = {
+                "APIKEY": self.api_key,
+                "Checker": checker,
+                "Authorization": self.hash
+            }
+        else:
+            headers = {"APIKEY": self.api_key}
+            
+        print("\n=== API REQUEST DETAILS ===")
+        print(f"URL: {url}")
+        print(f"Endpoint: {endpoint}")
+        print(f"Full URL: {url + endpoint}")
+        print(f"Headers: {headers}")
+        print(f"Payload: {payload}")
+        
+        response = requests.post(
+            url + endpoint,
+            json=payload,
+            headers=headers,
+            verify=False
+        )
+        
+        print("\n=== API RESPONSE DETAILS ===")
+        print(f"Status Code: {response.status_code}")
+        print(f"Response Headers: {dict(response.headers)}")
+        print(f"Response Text: {response.text}")
+        
+        return response
+
     def login(self):
         """
         API'ye login olmak için kullanılır
@@ -65,26 +128,7 @@ class Algolab:
             password = self.encrypt(self.password)
             payload = {"username": username, "password": password}
             
-            print("\n=== LOGIN REQUEST DETAILS ===")
-            print(f"API Key: {self.api_key}")
-            print(f"API Code: {self.api_code}")
-            print(f"API URL: {self.config.api_url}")
-            print(f"Endpoint: {self.config.URL_LOGIN_USER}")
-            print(f"Full URL: {self.config.api_url + self.config.URL_LOGIN_USER}")
-            print(f"Headers: {{'APIKEY': {self.api_key}}}")
-            print(f"Payload: {payload}")
-            
-            response = requests.post(
-                self.config.api_url + self.config.URL_LOGIN_USER,
-                json=payload,
-                headers={"APIKEY": self.api_key},
-                verify=False
-            )
-            
-            print("\n=== LOGIN RESPONSE DETAILS ===")
-            print(f"Status Code: {response.status_code}")
-            print(f"Response Headers: {dict(response.headers)}")
-            print(f"Response Text: {response.text}")
+            response = self.post(self.config.URL_LOGIN_USER, payload, login=True)
             
             if response.status_code == 200:
                 data = response.json()
@@ -105,28 +149,11 @@ class Algolab:
         SMS doğrulaması için kullanılır
         """
         try:
-            print("\n=== LOGIN CONTROL REQUEST DETAILS ===")
             token = self.encrypt(self.token)
             password = self.encrypt(sms_code)
             payload = {"token": token, "password": password}
             
-            print(f"Token: {self.token}")
-            print(f"SMS Code: {sms_code}")
-            print(f"Encrypted Token: {token}")
-            print(f"Encrypted SMS: {password}")
-            print(f"Payload: {payload}")
-            
-            response = requests.post(
-                self.config.api_url + self.config.URL_LOGIN_CONTROL,
-                json=payload,
-                headers={"APIKEY": self.api_key},
-                verify=False
-            )
-            
-            print("\n=== LOGIN CONTROL RESPONSE DETAILS ===")
-            print(f"Status Code: {response.status_code}")
-            print(f"Response Headers: {dict(response.headers)}")
-            print(f"Response Text: {response.text}")
+            response = self.post(self.config.URL_LOGIN_CONTROL, payload, login=True)
             
             if response.status_code == 200:
                 data = response.json()
@@ -141,89 +168,6 @@ class Algolab:
         except Exception as e:
             print(f"Login control error: {str(e)}")
             raise
-
-    def make_checker(self, endpoint, payload):
-        """
-        API istekleri için checker oluşturma
-        """
-        if len(payload) > 0:
-            body = json.dumps(payload).replace(' ', '')
-        else:
-            body = ""
-            
-        print("\n=== CHECKER DETAILS ===")
-        print(f"API Key: {self.api_key}")
-        print(f"API Hostname: {self.config.api_hostname}")
-        print(f"Endpoint: {endpoint}")
-        print(f"Body: {body}")
-        
-        # Orijinal API'deki gibi checker hesaplama
-        data = self.api_key + self.config.api_hostname + endpoint + body
-        checker = hashlib.sha256(data.encode('utf-8')).hexdigest()
-        
-        print(f"Data for checker: {data}")
-        print(f"Generated checker: {checker}")
-        
-        return checker
-
-    def post(self, endpoint, payload, login=False):
-        """
-        API istekleri için ortak method
-        """
-        url = self.config.api_url
-        if not login:
-            checker = self.make_checker(endpoint, payload)
-            headers = {
-                "APIKEY": self.api_key,
-                "Checker": checker,
-                "Authorization": self.hash
-            }
-        else:
-            headers = {"APIKEY": self.api_key}
-
-        print("\n=== API REQUEST DETAILS ===")
-        print(f"Config API URL: {url}")
-        print(f"Config API Hostname: {self.config.api_hostname}")
-        print(f"Endpoint: {endpoint}")
-        print(f"Full URL: {url + endpoint}")
-        print(f"Headers: {headers}")
-        print(f"Payload: {payload}")
-        
-        # Orijinal API'deki gibi _request methodu kullanılıyor
-        response = self._request("POST", url, endpoint, payload, headers)
-        
-        print("\n=== API RESPONSE DETAILS ===")
-        print(f"Status Code: {response.status_code}")
-        print(f"Response Headers: {dict(response.headers)}")
-        print(f"Response Text: {response.text}")
-        
-        return response
-
-    def _request(self, method, url, endpoint, payload, headers):
-        """
-        Orijinal API'deki _request methodu
-        """
-        last_request = 0.0
-        LOCK = False
-        
-        while LOCK:
-            time.sleep(0.01)
-        LOCK = True
-        
-        try:
-            response = ""
-            if method == "POST":
-                t = time.time()
-                diff = t - last_request
-                wait_for = last_request > 0.0 and diff < 5.0  # son işlemden geçen süre 5 saniyeden küçükse bekle
-                if wait_for:
-                    time.sleep(5 - diff + 0.01)
-                response = requests.post(url + endpoint, json=payload, headers=headers, verify=False)
-                last_request = time.time()
-        finally:
-            LOCK = False
-            
-        return response
 
     def get_equity_info(self, symbol):
         try:
