@@ -13,7 +13,15 @@ class Algolab:
         self.token = ""
         self.hash = ""
         self.session = requests.Session()
-        self.headers = {"APIKEY": self.config.get_api_key()}
+        
+        # API Key formatını düzenle
+        try:
+            self.api_code = config.get_api_key().split("-")[1]
+        except:
+            self.api_code = config.get_api_key()
+        self.api_key = "API-" + self.api_code
+        
+        self.headers = {"APIKEY": self.api_key}
 
     def encrypt(self, text):
         key = b'1234567890123456'
@@ -23,11 +31,14 @@ class Algolab:
 
     def login(self):
         try:
-            # İlk adım: Login isteği
+            if not self.api_key.startswith("API-"):
+                raise Exception("API Key must start with 'API-'")
+                
             username = self.encrypt(self.config.get_username())
             password = self.encrypt(self.config.get_password())
             payload = {"username": username, "password": password}
             
+            # İlk adım: Login isteği
             response = requests.post(
                 f"{self.config.get_api_url()}/auth/login/user",
                 json=payload,
@@ -38,22 +49,7 @@ class Algolab:
                 data = response.json()
                 if data["success"]:
                     self.token = data["content"]["token"]
-                    
-                    # İkinci adım: SMS gönderimi için istek
-                    sms_response = requests.post(
-                        f"{self.config.get_api_url()}/auth/login/sms",
-                        json={"token": self.encrypt(self.token)},
-                        headers=self.headers
-                    )
-                    
-                    if sms_response.status_code == 200:
-                        sms_data = sms_response.json()
-                        if sms_data["success"]:
-                            return True
-                        else:
-                            raise Exception(f"SMS request failed: {sms_data['message']}")
-                    else:
-                        raise Exception(f"SMS request failed with status {sms_response.status_code}")
+                    return True
                 else:
                     raise Exception(f"Login failed: {data['message']}")
             else:
