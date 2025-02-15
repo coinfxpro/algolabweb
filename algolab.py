@@ -107,14 +107,9 @@ class Algolab:
 
     def login(self):
         """
-        İlk login adımı - SMS gönderimi için
+        API'ye login olmak için kullanılır
         """
         try:
-            print("\n=== LOGIN ATTEMPT ===")
-            print(f"API URL: {self.config.get_api_url()}")
-            print(f"API Hostname: {self.config.api_hostname}")
-            print(f"Login Endpoint: {self.config.URL_LOGIN_USER}")
-            
             if not self.api_key.startswith("API-"):
                 raise Exception("API Key must start with 'API-'")
                 
@@ -122,28 +117,35 @@ class Algolab:
             password = self.encrypt(self.password)
             payload = {"username": username, "password": password}
             
+            print("\n=== LOGIN REQUEST DETAILS ===")
+            print(f"API Key: {self.api_key}")
+            print(f"API Code: {self.api_code}")
+            print(f"API URL: {self.config.get_api_url()}")
+            print(f"Endpoint: {self.config.URL_LOGIN_USER}")
             print(f"Full URL: {self.config.get_api_url() + self.config.URL_LOGIN_USER}")
             print(f"Headers: {self.headers}")
             print(f"Payload: {payload}")
             
-            response = self.post(
-                endpoint=self.config.URL_LOGIN_USER,
-                payload=payload,
-                login=True
-            )
+            response = self.post(self.config.URL_LOGIN_USER, payload, login=True)
+            
+            print("\n=== LOGIN RESPONSE DETAILS ===")
+            print(f"Status Code: {response.status_code}")
+            print(f"Response Headers: {dict(response.headers)}")
+            print(f"Response Text: {response.text}")
             
             if response.status_code == 200:
                 data = response.json()
-                if data["success"]:
+                if data.get("success"):
                     self.token = data["content"]["token"]
-                    return True
+                    return data
                 else:
-                    raise Exception(f"Login failed: {data['message']}")
+                    raise Exception(f"Login failed: {data.get('message', 'Unknown error')}")
             else:
                 raise Exception(f"Login request failed with status {response.status_code}: {response.text}")
+                
         except Exception as e:
-            print(f"Login Exception: {str(e)}")
-            raise Exception(f"Login error: {str(e)}")
+            print(f"Login error: {str(e)}")
+            raise
 
     def login_control(self, sms_code):
         """
