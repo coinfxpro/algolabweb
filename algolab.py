@@ -88,6 +88,9 @@ class Algolab:
         """
         try:
             print("\n=== LOGIN ATTEMPT ===")
+            print(f"API URL: {self.config.get_api_url()}")
+            print(f"API Hostname: {self.config.api_hostname}")
+            print(f"Login Endpoint: {self.config.URL_LOGIN_USER}")
             
             if not self.api_key.startswith("API-"):
                 raise Exception("API Key must start with 'API-'")
@@ -95,6 +98,10 @@ class Algolab:
             username = self.encrypt(self.config.get_username())
             password = self.encrypt(self.config.get_password())
             payload = {"username": username, "password": password}
+            
+            print(f"Full URL: {self.config.get_api_url() + self.config.URL_LOGIN_USER}")
+            print(f"Headers: {self.headers}")
+            print(f"Payload: {payload}")
             
             response = self.post(
                 endpoint=self.config.URL_LOGIN_USER,
