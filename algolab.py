@@ -30,6 +30,9 @@ class Algolab:
         return base64.b64encode(encrypted).decode()
 
     def login(self):
+        """
+        İlk login adımı - SMS gönderimi için
+        """
         try:
             if not self.api_key.startswith("API-"):
                 raise Exception("API Key must start with 'API-'")
@@ -39,7 +42,7 @@ class Algolab:
             payload = {"username": username, "password": password}
             
             response = requests.post(
-                f"{self.config.get_api_url()}{self.config.URL_LOGIN_USER}",
+                f"{self.config.get_api_url()}/api/LoginUser",
                 json=payload,
                 headers=self.headers
             )
@@ -48,7 +51,22 @@ class Algolab:
                 data = response.json()
                 if data["success"]:
                     self.token = data["content"]["token"]
-                    return True
+                    
+                    # SMS gönderimi için ikinci istek
+                    sms_response = requests.post(
+                        f"{self.config.get_api_url()}/api/LoginSendSms",
+                        json={"token": self.encrypt(self.token)},
+                        headers=self.headers
+                    )
+                    
+                    if sms_response.status_code == 200:
+                        sms_data = sms_response.json()
+                        if sms_data["success"]:
+                            return True
+                        else:
+                            raise Exception(f"SMS request failed: {sms_data['message']}")
+                    else:
+                        raise Exception(f"SMS request failed with status {sms_response.status_code}")
                 else:
                     raise Exception(f"Login failed: {data['message']}")
             else:
@@ -57,13 +75,16 @@ class Algolab:
             raise Exception(f"Login error: {str(e)}")
 
     def login_control(self, sms_code):
+        """
+        İkinci login adımı - SMS doğrulama
+        """
         try:
             token = self.encrypt(self.token)
             sms = self.encrypt(sms_code)
             payload = {'token': token, 'password': sms}
             
             response = requests.post(
-                f"{self.config.get_api_url()}{self.config.URL_LOGIN_CONTROL}",
+                f"{self.config.get_api_url()}/api/LoginUserControl",
                 json=payload,
                 headers=self.headers
             )
@@ -84,7 +105,7 @@ class Algolab:
         try:
             payload = {'symbol': symbol}
             response = requests.post(
-                f"{self.config.get_api_url()}{self.config.URL_GET_EQUITY_INFO}",
+                f"{self.config.get_api_url()}/api/GetEquityInfo",
                 json=payload,
                 headers={"HASH": self.hash, **self.headers}
             )
@@ -99,7 +120,7 @@ class Algolab:
     def get_positions(self):
         try:
             response = requests.post(
-                f"{self.config.get_api_url()}{self.config.URL_GET_INSTANT_POSITION}",
+                f"{self.config.get_api_url()}/api/InstantPosition",
                 json={},
                 headers={"HASH": self.hash, **self.headers}
             )
@@ -127,7 +148,7 @@ class Algolab:
                 payload["OrderType"] = "Market"
 
             response = requests.post(
-                f"{self.config.get_api_url()}{self.config.URL_SEND_ORDER}",
+                f"{self.config.get_api_url()}/api/SendOrder",
                 json=payload,
                 headers={"HASH": self.hash, **self.headers}
             )
@@ -142,7 +163,7 @@ class Algolab:
     def session_refresh(self):
         try:
             response = requests.post(
-                f"{self.config.get_api_url()}{self.config.URL_SESSION_REFRESH}",
+                f"{self.config.get_api_url()}/api/SessionRefresh",
                 json={},
                 headers={"HASH": self.hash, **self.headers}
             )
