@@ -5,32 +5,32 @@ class AlgolabConfig:
         self.api_key = None
         self.username = None
         self.password = None
-        self.hostname = "algolab.com.tr"  # api. ve www. kaldırdık
+        self.hostname = "www.algolab.com.tr"  # Orijinal API'deki gibi
         self.api_hostname = f"https://{self.hostname}"
-        self.api_url = self.api_hostname  # /api kısmını kaldırdık
-        self.socket_url = f"wss://{self.hostname}/ws"  
+        self.api_url = self.api_hostname + "/api"  # /api ekledik
+        self.socket_url = f"wss://{self.hostname}/api/ws"  # /api ekledik
 
         # API Endpoints
-        self.URL_LOGIN_USER = "/api/LoginUser"  
-        self.URL_LOGIN_CONTROL = "/api/LoginUserControl"
-        self.URL_SESSION_REFRESH = "/api/SessionRefresh"
-        self.URL_SEND_ORDER = "/api/SendOrder"
-        self.URL_MODIFY_ORDER = "/api/ModifyOrder"
-        self.URL_DELETE_ORDER = "/api/DeleteOrder"
-        self.URL_DELETE_ORDER_VIOP = "/api/DeleteOrderViop"
-        self.URL_GET_EQUITY_INFO = "/api/GetEquityInfo"
-        self.URL_GET_CANDLE_DATA = "/api/GetCandleData"
-        self.URL_GET_INSTANT_POSITION = "/api/GetInstantPosition"
-        self.URL_GET_VIOP_CUSTOMER_OVERALL = "/api/ViopCustomerOverall"
-        self.URL_GET_SUBACCOUNTS = "/api/GetSubAccounts"
-        self.URL_GET_TODAYS_TRANSACTION = "/api/GetTodaysTransaction"
-        self.URL_GET_VIOP_CUSTOMER_TRANSACTIONS = "/api/ViopCustomerTransactions"
-        self.URL_GET_EQUITY_ORDER_HISTORY = "/api/GetEquityOrderHistory"
-        self.URL_GET_VIOP_ORDER_HISTORY = "/api/GetViopOrderHistory"
-        self.URL_GET_ACCOUNT_EXTRE = "/api/AccountExtre"
-        self.URL_GET_CASH_FLOW = "/api/CashFlow"
-        self.URL_RISK_SIMULATION = "/api/RiskSimulation"
-        self.URL_VIOP_COLLATERAL_INFO = "/api/ViopCollateralInfo"
+        self.URL_LOGIN_USER = "/LoginUser"  # /api prefix'ini kaldırdık
+        self.URL_LOGIN_CONTROL = "/LoginUserControl"
+        self.URL_SESSION_REFRESH = "/SessionRefresh"
+        self.URL_SEND_ORDER = "/SendOrder"
+        self.URL_MODIFY_ORDER = "/ModifyOrder"
+        self.URL_DELETE_ORDER = "/DeleteOrder"
+        self.URL_DELETE_ORDER_VIOP = "/DeleteOrderViop"
+        self.URL_GET_EQUITY_INFO = "/GetEquityInfo"
+        self.URL_GET_CANDLE_DATA = "/GetCandleData"
+        self.URL_GET_INSTANT_POSITION = "/InstantPosition"
+        self.URL_GET_VIOP_CUSTOMER_OVERALL = "/ViopCustomerOverall"
+        self.URL_GET_SUBACCOUNTS = "/GetSubAccounts"
+        self.URL_GET_TODAYS_TRANSACTION = "/TodaysTransaction"
+        self.URL_GET_VIOP_CUSTOMER_TRANSACTIONS = "/ViopCustomerTransactions"
+        self.URL_GET_EQUITY_ORDER_HISTORY = "/GetEquityOrderHistory"
+        self.URL_GET_VIOP_ORDER_HISTORY = "/GetViopOrderHistory"
+        self.URL_GET_ACCOUNT_EXTRE = "/AccountExtre"
+        self.URL_GET_CASH_FLOW = "/CashFlow"
+        self.URL_RISK_SIMULATION = "/RiskSimulation"
+        self.URL_VIOP_COLLATERAL_INFO = "/ViopCollateralInfo"
 
     @property
     def api_key(self):
