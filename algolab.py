@@ -60,7 +60,7 @@ class Algolab:
             headers = {
                 "APIKEY": self.api_key,
                 "Checker": checker,
-                "Hash": self.hash  # Authorization yerine Hash kullanıyoruz
+                "Hash": self.hash
             }
         else:
             headers = {"APIKEY": self.api_key}
