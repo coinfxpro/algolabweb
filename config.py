@@ -1,13 +1,43 @@
-# USER INFO
-MY_API_KEY='API-KEY' #API Key'inizi Buraya Giriniz
-MY_USERNAME = "TC veya Denizbank Kullanici Adi" #TC veya Denizbank Kullanıcı Adınızı Buraya Giriniz
-MY_PASSWORD = "Şifre" #Denizbank İnternet Bankacılığı Şifrenizi Buraya Giriniz
+import streamlit as st
 
-# URLS
-hostname = "www.algolab.com.tr"
-api_hostname = f"https://{hostname}"
-api_url = api_hostname + "/api"
-socket_url = f"wss://{hostname}/api/ws"
+class AlgolabConfig:
+    def __init__(self):
+        try:
+            # Streamlit Cloud'da secrets.toml'dan oku
+            self.api_key = st.secrets["algolab"]["api_key"]
+            self.username = st.secrets["algolab"]["username"]
+            self.password = st.secrets["algolab"]["password"]
+            self.hostname = "www.algolab.com.tr"
+            self.api_hostname = f"https://{self.hostname}"
+            self.api_url = self.api_hostname + "/api"
+            self.socket_url = f"wss://{self.hostname}/api/ws"
+        except Exception as e:
+            # Lokal geliştirme için
+            self.api_key = "API-KEY" #API Key'inizi Buraya Giriniz
+            self.username = "TC veya Denizbank Kullanici Adi" #TC veya Denizbank Kullanıcı Adınızı Buraya Giriniz
+            self.password = "Şifre" #Denizbank İnternet Bankacılığı Şifrenizi Buraya Giriniz
+            self.hostname = "www.algolab.com.tr"
+            self.api_hostname = f"https://{self.hostname}"
+            self.api_url = self.api_hostname + "/api"
+            self.socket_url = f"wss://{self.hostname}/api/ws"
+
+    def get_api_key(self):
+        return self.api_key
+
+    def get_username(self):
+        return self.username
+
+    def get_password(self):
+        return self.password
+
+    def get_api_url(self):
+        return self.api_url
+
+    def get_socket_url(self):
+        return self.socket_url
+
+    def get_hostname(self):
+        return self.hostname
 
 # ORDER STATUS
 ORDER_STATUS = {0: "Bekleyen",
