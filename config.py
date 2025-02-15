@@ -2,16 +2,19 @@ import streamlit as st
 
 class AlgolabConfig:
     def __init__(self):
+        # API bilgileri
         self.api_key = None
         self.username = None
         self.password = None
+        
+        # URL yapılandırması - orijinal API ile aynı
         self.hostname = "www.algolab.com.tr"
         self.api_hostname = f"https://{self.hostname}"
-        self.api_url = self.api_hostname  
-        self.socket_url = f"wss://{self.hostname}/api/ws"  
+        self.api_url = self.api_hostname  # /api yok
+        self.socket_url = f"wss://{self.hostname}/api/ws"
 
-        # API Endpoints
-        self.URL_LOGIN_USER = "/api/LoginUser"  
+        # API Endpoints - orijinal API ile aynı
+        self.URL_LOGIN_USER = "/api/LoginUser"
         self.URL_LOGIN_CONTROL = "/api/LoginUserControl"
         self.URL_SESSION_REFRESH = "/api/SessionRefresh"
         self.URL_SEND_ORDER = "/api/SendOrder"
