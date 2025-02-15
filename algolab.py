@@ -65,8 +65,10 @@ class Algolab:
         else:
             headers = {"APIKEY": self.api_key}
             
-        print(f"\nAPI Request:")
-        print(f"URL: {url}{endpoint}")
+        print("\n=== API REQUEST DETAILS ===")
+        print(f"Base URL: {url}")
+        print(f"Endpoint: {endpoint}")
+        print(f"Full URL: {url + endpoint}")
         print(f"Headers: {headers}")
         print(f"Payload: {payload}")
         
@@ -76,6 +78,7 @@ class Algolab:
             headers=headers
         )
         
+        print("\n=== API RESPONSE DETAILS ===")
         print(f"Status Code: {response.status_code}")
         print(f"Response Headers: {dict(response.headers)}")
         print(f"Response Text: {response.text}")

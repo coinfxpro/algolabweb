@@ -5,7 +5,7 @@ class AlgolabConfig:
         self.api_key = None
         self.username = None
         self.password = None
-        self.hostname = "www.algolab.com.tr"  
+        self.hostname = "api.algolab.com.tr"  
         self.api_hostname = f"https://{self.hostname}"
         self.api_url = self.api_hostname  
         self.socket_url = f"wss://{self.hostname}/ws"  
