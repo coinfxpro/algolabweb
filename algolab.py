@@ -38,9 +38,8 @@ class Algolab:
             password = self.encrypt(self.config.get_password())
             payload = {"username": username, "password": password}
             
-            # İlk adım: Login isteği
             response = requests.post(
-                f"{self.config.get_api_url()}/auth/login/user",
+                f"{self.config.get_api_url()}{self.config.URL_LOGIN_USER}",
                 json=payload,
                 headers=self.headers
             )
@@ -64,7 +63,7 @@ class Algolab:
             payload = {'token': token, 'password': sms}
             
             response = requests.post(
-                f"{self.config.get_api_url()}/auth/login/control",
+                f"{self.config.get_api_url()}{self.config.URL_LOGIN_CONTROL}",
                 json=payload,
                 headers=self.headers
             )
@@ -85,7 +84,7 @@ class Algolab:
         try:
             payload = {'symbol': symbol}
             response = requests.post(
-                f"{self.config.get_api_url()}/data/getequityinfo",
+                f"{self.config.get_api_url()}{self.config.URL_GET_EQUITY_INFO}",
                 json=payload,
                 headers={"HASH": self.hash, **self.headers}
             )
@@ -100,7 +99,7 @@ class Algolab:
     def get_positions(self):
         try:
             response = requests.post(
-                f"{self.config.get_api_url()}/data/instantposition",
+                f"{self.config.get_api_url()}{self.config.URL_GET_INSTANT_POSITION}",
                 json={},
                 headers={"HASH": self.hash, **self.headers}
             )
@@ -128,7 +127,7 @@ class Algolab:
                 payload["OrderType"] = "Market"
 
             response = requests.post(
-                f"{self.config.get_api_url()}/order/sendorder",
+                f"{self.config.get_api_url()}{self.config.URL_SEND_ORDER}",
                 json=payload,
                 headers={"HASH": self.hash, **self.headers}
             )
@@ -143,7 +142,7 @@ class Algolab:
     def session_refresh(self):
         try:
             response = requests.post(
-                f"{self.config.get_api_url()}/auth/sessionrefresh",
+                f"{self.config.get_api_url()}{self.config.URL_SESSION_REFRESH}",
                 json={},
                 headers={"HASH": self.hash, **self.headers}
             )

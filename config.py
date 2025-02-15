@@ -10,6 +10,28 @@ class AlgolabConfig:
         self.api_url = self.api_hostname + "/api"
         self.socket_url = f"wss://{self.hostname}/api/ws"
 
+        # API Endpoints
+        self.URL_LOGIN_USER = "/auth/login/user"
+        self.URL_LOGIN_CONTROL = "/auth/login/control"
+        self.URL_SESSION_REFRESH = "/auth/sessionrefresh"
+        self.URL_SEND_ORDER = "/order/sendorder"
+        self.URL_MODIFY_ORDER = "/order/modifyorder"
+        self.URL_DELETE_ORDER = "/order/deleteorder"
+        self.URL_DELETE_ORDER_VIOP = "/order/deleteorderviop"
+        self.URL_GET_EQUITY_INFO = "/data/getequityinfo"
+        self.URL_GET_CANDLE_DATA = "/data/getcandledata"
+        self.URL_GET_INSTANT_POSITION = "/data/instantposition"
+        self.URL_GET_VIOP_CUSTOMER_OVERALL = "/data/viopcustomeroverall"
+        self.URL_GET_SUBACCOUNTS = "/data/subaccounts"
+        self.URL_GET_TODAYS_TRANSACTION = "/data/todaystransaction"
+        self.URL_GET_VIOP_CUSTOMER_TRANSACTIONS = "/data/viopcustomertransactions"
+        self.URL_GET_EQUITY_ORDER_HISTORY = "/data/equityorderhistory"
+        self.URL_GET_VIOP_ORDER_HISTORY = "/data/vioporderhistory"
+        self.URL_GET_ACCOUNT_EXTRE = "/data/accountextre"
+        self.URL_GET_CASH_FLOW = "/data/cashflow"
+        self.URL_RISK_SIMULATION = "/data/risksimulation"
+        self.URL_VIOP_COLLATERAL_INFO = "/data/viopcollateralinfo"
+
     @property
     def api_key(self):
         return self._api_key
@@ -49,44 +71,34 @@ class AlgolabConfig:
     def get_socket_url(self):
         return self.socket_url
 
-    def get_hostname(self):
-        return self.hostname
+    def get_endpoint(self, name):
+        return getattr(self, name, None)
 
 # ORDER STATUS
-ORDER_STATUS = {0: "Bekleyen",
-1: "Teslim Edildi",
-2: "Gerçekleşti",
-3: "Kismi Gerçekleşti",
-4: "İptal Edildi",
-5: "Değiştirildi",
-6: "Askiya Alindi",
-7: "Süresi Doldu",
-8: "Hata"}
+ORDER_STATUS = {
+    0: "Bekleyen",
+    1: "Teslim Edildi",
+    2: "Gerçekleşti",
+    3: "İptal Edildi",
+    4: "Reddedildi",
+    5: "Beklemede",
+    6: "İptal Edildi",
+    7: "Kısmi İptal",
+    8: "Kısmi Gerçekleşti",
+    9: "Kısmi Gerçekleşti ve İptal Edildi",
+    10: "Kısmi Gerçekleşti ve Kısmi İptal Edildi",
+    11: "Kısmi Gerçekleşti ve Beklemede",
+    12: "Kısmi Gerçekleşti ve Teslim Edildi",
+    13: "Kısmi Gerçekleşti ve Reddedildi",
+    14: "Kısmi Gerçekleşti ve İptal Edildi",
+    15: "Kısmi Gerçekleşti ve Kısmi İptal Edildi",
+    16: "Kısmi Gerçekleşti ve Kısmi İptal Edildi ve Beklemede",
+    17: "Kısmi Gerçekleşti ve Kısmi İptal Edildi ve Teslim Edildi",
+    18: "Kısmi Gerçekleşti ve Kısmi İptal Edildi ve Reddedildi"
+}
 
 # Tick to OHLCV converter için takip edilmesi istenen semboller, boş olarak verilirse tüm semboller veya marketler takip edilir.
 TRACKED_SYMBOLS = []
 TRACKED_MARKETS = []
 BUFFER_SIZE = 50000  # Converter için kaç veri sayısı biriktirilip json dosyalarına aktarılmalı
 #Sadece IMKBH için 5000 gecikme olmadan çalışmaktadır. Tüm semboller içinse 50000 gecikme olmadan çalışmaktadır.
-
-# ENDPOINTS
-URL_LOGIN_USER = "/api/LoginUser"
-URL_LOGIN_CONTROL = "/api/LoginUserControl"
-URL_GETEQUITYINFO = "/api/GetEquityInfo"
-URL_GETSUBACCOUNTS = "/api/GetSubAccounts"
-URL_INSTANTPOSITION = "/api/InstantPosition"
-URL_TODAYTRANSACTION = "/api/TodaysTransaction"
-URL_VIOPCUSTOMEROVERALL = "/api/ViopCustomerOverall"
-URL_VIOPCUSTOMERTRANSACTIONS = "/api/ViopCustomerTransactions"
-URL_SENDORDER = "/api/SendOrder"
-URL_MODIFYORDER = "/api/ModifyOrder"
-URL_DELETEORDER = "/api/DeleteOrder"
-URL_DELETEORDERVIOP = "/api/DeleteOrderViop"
-URL_SESSIONREFRESH = "/api/SessionRefresh"
-URL_GETCANDLEDATA = "/api/GetCandleData"
-URL_VIOPCOLLETERALINFO = "/api/ViopCollateralInfo"
-URL_RISKSIMULATION = "/api/RiskSimulation"
-URL_GETEQUITYORDERHISTORY = "/api/GetEquityOrderHistory" # 404 Hatası alıyor
-URL_GETVIOPORDERHISTORY = "/api/GetViopOrderHistory" # 404 Hatası alıyor
-URL_CASHFLOW = "/api/CashFlow"
-URL_ACCOUNTEXTRE = "/api/AccountExtre"
