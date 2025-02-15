@@ -24,6 +24,7 @@ if 'algolab' not in st.session_state:
     st.session_state.algolab = None
     st.session_state.logged_in = False
     st.session_state.waiting_for_sms = False
+    st.session_state.login_error = None
 
 # Webhook endpoint'i
 @app.post("/webhook")
@@ -82,16 +83,22 @@ def main():
                     config.username = username
                     config.password = password
                     
-                    st.session_state.algolab = Algolab(config)
-                    st.session_state.waiting_for_sms = True
-                    st.rerun()
+                    algolab = Algolab(config)
+                    if algolab.login():
+                        st.session_state.algolab = algolab
+                        st.session_state.waiting_for_sms = True
+                        st.session_state.login_error = None
+                        st.rerun()
                 except Exception as e:
+                    st.session_state.login_error = str(e)
                     st.error(f"Giriş hatası: {str(e)}")
     
     # SMS doğrulama
     elif st.session_state.waiting_for_sms:
+        st.write("SMS Doğrulama")
+        st.info("Login başarılı! Lütfen telefonunuza gelen SMS kodunu girin.")
+        
         with st.form("sms_form"):
-            st.write("SMS Doğrulama")
             sms_code = st.text_input("SMS Kodu")
             
             if st.form_submit_button("Doğrula"):
@@ -99,46 +106,36 @@ def main():
                     if st.session_state.algolab.login_control(sms_code):
                         st.session_state.logged_in = True
                         st.session_state.waiting_for_sms = False
-                        st.success("Başarıyla giriş yapıldı!")
+                        st.session_state.login_error = None
                         st.rerun()
                 except Exception as e:
+                    st.session_state.login_error = str(e)
                     st.error(f"SMS doğrulama hatası: {str(e)}")
-    
-    # Ana sayfa
-    else:
-        # Sidebar
-        st.sidebar.header("İşlemler")
-        if st.sidebar.button("Oturumu Kapat"):
-            st.session_state.algolab = None
-            st.session_state.logged_in = False
+                    
+        # SMS ekranından geri dönme butonu
+        if st.button("Geri Dön"):
             st.session_state.waiting_for_sms = False
+            st.session_state.algolab = None
             st.rerun()
+    
+    # Ana ekran
+    else:
+        st.write("Hoş geldiniz! TradingView webhook'ları için hazır.")
+        st.write("Webhook URL'si:")
+        st.code(f"{st.secrets.get('WEBHOOK_URL', 'https://your-app-url.streamlit.app')}/webhook")
         
-        # Ana sayfa
-        st.header("Webhook Bilgileri")
-        st.info("Webhook URL: http://your-domain/webhook")
-        
-        st.markdown("""
-        ### TradingView Webhook Format:
-        ```json
-        {
-            "symbol": "BTCUSDT",
-            "side": "BUY",  // veya "SELL"
+        st.write("\nWebhook Format:")
+        webhook_format = {
+            "symbol": "THYAO",
+            "side": "BUY",  # veya "SELL"
             "quantity": 1.0
         }
-        ```
-        """)
+        st.code(json.dumps(webhook_format, indent=2))
         
-        # Pozisyonlar
-        st.header("Mevcut Pozisyonlar")
-        try:
-            positions = st.session_state.algolab.get_positions()
-            if positions["success"]:
-                st.table(positions["content"])
-            else:
-                st.warning("Pozisyon bilgileri alınamadı")
-        except Exception as e:
-            st.error(f"Pozisyonlar alınırken hata oluştu: {str(e)}")
+        if st.button("Çıkış Yap"):
+            st.session_state.logged_in = False
+            st.session_state.algolab = None
+            st.rerun()
 
 def run_fastapi():
     uvicorn.run(app, host="0.0.0.0", port=8000)
@@ -148,5 +145,5 @@ if __name__ == "__main__":
     fastapi_thread = threading.Thread(target=run_fastapi, daemon=True)
     fastapi_thread.start()
     
-    # Streamlit uygulamasını başlat
+    # Streamlit arayüzünü başlat
     main()
