@@ -54,7 +54,17 @@ class Algolab:
         if self.hash:
             headers["Hash"] = self.hash
             
+        print(f"\nAPI Request:")  # Debug için
+        print(f"URL: {url}")
+        print(f"Headers: {headers}")
+        print(f"Payload: {payload}")
+        
         response = self.session.post(url, json=payload, headers=headers)
+        
+        print(f"Status Code: {response.status_code}")  # Debug için
+        print(f"Response Headers: {dict(response.headers)}")
+        print(f"Response Text: {response.text}")
+        
         if response.status_code != 200:
             raise Exception(f"Request failed with status {response.status_code}: {response.text}")
             
