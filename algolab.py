@@ -1,253 +1,138 @@
-from datetime import datetime
 import requests
-import json
 import base64
-import hashlib
-import time
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad
-from config import AlgolabConfig
+import json
 
 class Algolab:
-    def __init__(self, config: AlgolabConfig):
+    def __init__(self, config):
         self.config = config
         self.token = ""
         self.hash = ""
         self.session = requests.Session()
-        
-        # API Key formatını düzenle
-        api_key = config.get_api_key()
-        if not api_key.startswith("API-"):
-            self.api_code = api_key
-            self.api_key = f"API-{api_key}"
-        else:
-            self.api_code = api_key.split("-")[1]
-            self.api_key = api_key
-            
+        self.api_key = config.get_api_key()
         self.headers = {"APIKEY": self.api_key}
-        print(f"Initialized with API Key: {self.api_key}, API Code: {self.api_code}")  # Debug için
 
     def encrypt(self, text):
         """
         Orijinal API'nin şifreleme yöntemi
         """
-        try:
-            if not self.api_code:
-                raise ValueError("API Code is empty")
-                
-            iv = b'\0' * 16
-            key = base64.b64decode(self.api_code.encode('utf-8'))
-            
-            if len(key) == 0:
-                raise ValueError(f"Invalid API key length after base64 decode. API Code: {self.api_code}")
-                
-            cipher = AES.new(key, AES.MODE_CBC, iv)
-            bytes_text = text.encode()
-            padded_bytes = pad(bytes_text, 16)
-            encrypted = cipher.encrypt(padded_bytes)
-            return base64.b64encode(encrypted).decode("utf-8")
-        except Exception as e:
-            print(f"Encryption error: {str(e)}")  # Debug için
-            raise
+        iv = b'\0' * 16
+        key = base64.b64decode(self.api_key.encode('utf-8'))
+        cipher = AES.new(key, AES.MODE_CBC, iv)
+        bytes_text = text.encode()
+        padded_bytes = pad(bytes_text, 16)
+        encrypted = cipher.encrypt(padded_bytes)
+        return base64.b64encode(encrypted).decode("utf-8")
 
     def make_checker(self, endpoint, payload):
         """
-        API istekleri için checker oluşturma
+        API isteklerini hazırla ve gönder
         """
-        if len(payload) > 0:
-            body = json.dumps(payload).replace(' ', '')
-        else:
-            body = ""
-        data = self.api_key + self.config.api_hostname + endpoint + body
-        checker = hashlib.sha256(data.encode('utf-8')).hexdigest()
-        return checker
-
-    def post(self, endpoint, payload, login=False):
-        """
-        API istekleri için ortak method
-        """
-        url = self.config.get_api_url()
+        url = self.config.api_url + endpoint
+        headers = self.headers.copy()
         
-        if not login:
-            checker = self.make_checker(endpoint, payload)
-            headers = {
-                "APIKEY": self.api_key,
-                "Checker": checker,
-                "Hash": self.hash  # Authorization yerine Hash kullanıyoruz
-            }
-        else:
-            headers = {"APIKEY": self.api_key}
+        if self.hash:
+            headers["Hash"] = self.hash
             
-        print(f"\nAPI Request:")
-        print(f"URL: {url}{endpoint}")
-        print(f"Headers: {headers}")
-        print(f"Payload: {payload}")
-        
-        response = requests.post(
-            url + endpoint,
-            json=payload,
-            headers=headers
-        )
-        
-        print(f"Status Code: {response.status_code}")
-        print(f"Response Headers: {dict(response.headers)}")
-        print(f"Response Text: {response.text}")
-        
-        return response
+        response = self.session.post(url, json=payload, headers=headers)
+        if response.status_code != 200:
+            raise Exception(f"Request failed with status {response.status_code}: {response.text}")
+            
+        return response.json()
 
     def login(self):
         """
-        İlk login adımı - SMS gönderimi için
+        Kullanıcı girişi yap
         """
         try:
-            print("\n=== LOGIN ATTEMPT ===")
-            
-            if not self.api_key.startswith("API-"):
-                raise Exception("API Key must start with 'API-'")
-                
             username = self.encrypt(self.config.get_username())
             password = self.encrypt(self.config.get_password())
             payload = {"username": username, "password": password}
             
-            response = self.post(
-                endpoint=self.config.URL_LOGIN_USER,
-                payload=payload,
-                login=True
-            )
-            
-            if response.status_code == 200:
-                data = response.json()
-                if data["success"]:
-                    self.token = data["content"]["token"]
-                    return True
-                else:
-                    raise Exception(f"Login failed: {data['message']}")
+            response = self.make_checker(self.config.URL_LOGIN_USER, payload)
+            if response.get("success"):
+                self.token = response.get("result", {}).get("token", "")
+                return True
             else:
-                raise Exception(f"Login request failed with status {response.status_code}: {response.text}")
+                raise Exception(f"Login error: {response.get('message', 'Unknown error')}")
         except Exception as e:
-            print(f"Login Exception: {str(e)}")
             raise Exception(f"Login error: {str(e)}")
 
     def login_control(self, sms_code):
         """
-        İkinci login adımı - SMS doğrulama
+        SMS doğrulaması yap
         """
         try:
-            print("\n=== LOGIN CONTROL ATTEMPT ===")
-            
             token = self.encrypt(self.token)
             sms = self.encrypt(sms_code)
-            payload = {'token': token, 'password': sms}
+            payload = {"token": token, "password": sms}
             
-            response = self.post(
-                endpoint=self.config.URL_LOGIN_CONTROL,
-                payload=payload,
-                login=True
-            )
-            
-            if response.status_code == 200:
-                data = response.json()
-                if data["success"]:
-                    self.hash = data["content"]["hash"]
-                    return True
-                else:
-                    raise Exception(f"Login control failed: {data['message']}")
+            response = self.make_checker(self.config.URL_LOGIN_CONTROL, payload)
+            if response.get("success"):
+                self.hash = response.get("result", {}).get("hash", "")
+                return True
             else:
-                raise Exception(f"Login control request failed with status {response.status_code}: {response.text}")
+                raise Exception(f"SMS verification error: {response.get('message', 'Unknown error')}")
         except Exception as e:
-            print(f"Login Control Exception: {str(e)}")
-            raise Exception(f"Login control error: {str(e)}")
+            raise Exception(f"SMS verification error: {str(e)}")
 
-    def get_equity_info(self, symbol):
+    def get_equity_info(self):
+        """
+        Portföy bilgilerini getir
+        """
         try:
-            payload = {'symbol': symbol}
-            response = self.post(
-                endpoint=self.config.URL_GET_EQUITY_INFO,
-                payload=payload,
-                login=False
-            )
-            
-            if response.status_code == 200:
-                return response.json()
+            response = self.make_checker(self.config.URL_GET_EQUITY_INFO, {})
+            if response.get("success"):
+                return response.get("result", {})
             else:
-                raise Exception(f"Failed to get equity info: {response.text}")
+                raise Exception(f"Error getting equity info: {response.get('message', 'Unknown error')}")
         except Exception as e:
-            raise Exception(f"Get equity info error: {str(e)}")
+            raise Exception(f"Error getting equity info: {str(e)}")
 
-    def get_positions(self):
+    def get_instant_position(self):
+        """
+        Anlık pozisyon bilgilerini getir
+        """
         try:
-            response = self.post(
-                endpoint=self.config.URL_GET_INSTANT_POSITION,
-                payload={},
-                login=False
-            )
-            
-            if response.status_code == 200:
-                return response.json()
+            response = self.make_checker(self.config.URL_GET_INSTANT_POSITION, {})
+            if response.get("success"):
+                return response.get("result", {})
             else:
-                raise Exception(f"Failed to get positions: {response.text}")
+                raise Exception(f"Error getting instant position: {response.get('message', 'Unknown error')}")
         except Exception as e:
-            raise Exception(f"Get positions error: {str(e)}")
+            raise Exception(f"Error getting instant position: {str(e)}")
 
-    def submit_order(self, symbol, side, quantity, price=None, order_type="MARKET"):
+    def get_todays_transaction(self):
+        """
+        Günlük işlemleri getir
+        """
+        try:
+            response = self.make_checker(self.config.URL_GET_TODAYS_TRANSACTION, {})
+            if response.get("success"):
+                return response.get("result", {})
+            else:
+                raise Exception(f"Error getting today's transactions: {response.get('message', 'Unknown error')}")
+        except Exception as e:
+            raise Exception(f"Error getting today's transactions: {str(e)}")
+
+    def send_order(self, symbol, quantity, price, buy_sell, order_type="limit"):
+        """
+        Emir gönder
+        """
         try:
             payload = {
                 "symbol": symbol,
-                "direction": "Buy" if side.upper() == "BUY" else "Sell",
-                "pricetype": "limit" if order_type.upper() == "LIMIT" else "piyasa",
-                "lot": str(quantity),
-                "sms": False,
-                "email": False,
-                "subAccount": ""
+                "quantity": quantity,
+                "price": price,
+                "buy_sell": buy_sell,
+                "order_type": order_type
             }
             
-            if price is not None and order_type.upper() == "LIMIT":
-                payload["price"] = str(price)
+            response = self.make_checker(self.config.URL_SEND_ORDER, payload)
+            if response.get("success"):
+                return response.get("result", {})
             else:
-                payload["price"] = ""
-
-            response = self.post(
-                endpoint=self.config.URL_SEND_ORDER,
-                payload=payload,
-                login=False
-            )
-            
-            if response.status_code == 200:
-                return response.json()
-            else:
-                raise Exception(f"Failed to submit order: {response.text}")
+                raise Exception(f"Error sending order: {response.get('message', 'Unknown error')}")
         except Exception as e:
-            raise Exception(f"Submit order error: {str(e)}")
-
-    def session_refresh(self):
-        try:
-            response = self.post(
-                endpoint=self.config.URL_SESSION_REFRESH,
-                payload={},
-                login=False
-            )
-            
-            if response.status_code == 200:
-                return response.json()
-            else:
-                raise Exception(f"Failed to refresh session: {response.text}")
-        except Exception as e:
-            raise Exception(f"Session refresh error: {str(e)}")
-
-    def get_todays_transaction(self):  # Metod ismini config ile uyumlu hale getirdik
-        """
-        Günlük işlemleri ve bekleyen emirleri getirir
-        """
-        try:
-            response = self.post(
-                endpoint=self.config.URL_GET_TODAYS_TRANSACTION,  # Config'deki isimle aynı
-                payload={},
-                login=False
-            )
-            
-            if response.status_code == 200:
-                return response.json()
-            else:
-                raise Exception(f"Failed to get today's transactions: {response.text}")
-        except Exception as e:
-            raise Exception(f"Get today's transactions error: {str(e)}")
+            raise Exception(f"Error sending order: {str(e)}")
