@@ -2,6 +2,8 @@ import streamlit as st
 from algolab import Algolab
 from config import AlgolabConfig
 import pandas as pd
+import time
+from datetime import datetime, timedelta
 
 # Sayfa yapılandırması
 st.set_page_config(
@@ -19,6 +21,8 @@ if 'waiting_for_sms' not in st.session_state:
     st.session_state.waiting_for_sms = False
 if 'sms_pending' not in st.session_state:
     st.session_state.sms_pending = False
+if 'sms_time' not in st.session_state:
+    st.session_state.sms_time = None
 
 def format_number(value):
     try:
@@ -47,6 +51,7 @@ def handle_login():
             st.session_state.algolab = algolab
             st.session_state.logged_in = True
             st.session_state.sms_pending = True
+            st.session_state.sms_time = datetime.now()  # SMS gönderilme zamanını kaydet
             st.success("Giriş başarılı! SMS kodu bekleniyor...")
             st.rerun()
         else:
@@ -56,12 +61,14 @@ def handle_login():
         st.error(f"Giriş hatası: {str(e)}")
         st.session_state.logged_in = False
         st.session_state.sms_pending = False
+        st.session_state.sms_time = None
 
 def handle_sms():
     try:
         if st.session_state.algolab.login_control(st.session_state.sms_code):
             st.session_state.logged_in = True
             st.session_state.sms_pending = False
+            st.session_state.sms_time = None
             st.success("Giriş başarılı!")
             st.rerun()
     except Exception as e:
@@ -81,76 +88,62 @@ if not st.session_state.logged_in:
             if st.form_submit_button("Giriş Yap"):
                 handle_login()
     else:
-        with st.form("sms_form"):
-            st.text_input("SMS Kodu", type="password", key="sms_code")
-            
-            if st.form_submit_button("Doğrula"):
-                handle_sms()
+        # SMS kodunun geçerlilik süresini kontrol et (60 saniye)
+        if st.session_state.sms_time:
+            remaining_time = 60 - (datetime.now() - st.session_state.sms_time).seconds
+            if remaining_time > 0:
+                st.warning(f"SMS kodunun geçerlilik süresi: {remaining_time} saniye")
                 
+                with st.form("sms_form"):
+                    st.text_input("SMS Kodu", type="password", key="sms_code")
+                    col1, col2 = st.columns([1, 4])
+                    with col1:
+                        submit = st.form_submit_button("Doğrula")
+                    with col2:
+                        if st.form_submit_button("Yeni Kod İste"):
+                            handle_login()  # Yeni SMS kodu için login işlemini tekrarla
+                
+                if submit:
+                    handle_sms()
+            else:
+                st.error("SMS kodunun süresi doldu. Lütfen yeni kod isteyin.")
+                if st.button("Yeni Kod İste"):
+                    handle_login()
+        
         if st.button("Geri Dön"):
             st.session_state.sms_pending = False
             st.session_state.algolab = None
+            st.session_state.sms_time = None
             st.rerun()
 
 # Login olmuşsa ana ekranı göster
 else:
     # Portföy bilgilerini göster
     try:
-        equity_info = st.session_state.algolab.get_equity_info()
+        # Portföy bilgilerini göster
         positions = st.session_state.algolab.get_instant_position()
-        
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.metric("Toplam Varlık", format_number(equity_info.get("totalAssets", 0)))
-        with col2:
-            st.metric("Kullanılabilir Bakiye", format_number(equity_info.get("availableBalance", 0)))
-        with col3:
-            st.metric("Kredi", format_number(equity_info.get("credit", 0)))
-        with col4:
-            st.metric("Risk Oranı", format_number(equity_info.get("riskRatio", 0)))
+        if positions and positions.get('success'):
+            st.subheader("Portföy Bilgileri")
+            df_positions = pd.DataFrame(positions['content'])
+            st.dataframe(df_positions)
             
-        # Pozisyonları tablo olarak göster
-        if positions:
-            st.subheader("Açık Pozisyonlar")
-            df = pd.DataFrame(positions)
-            st.dataframe(df)
-            
-        # Manuel emir girişi
-        with st.form("order_form"):
-            st.subheader("Manuel Emir Girişi")
-            symbol = st.text_input("Sembol", key="order_symbol")
-            quantity = st.number_input("Miktar", min_value=0, key="order_quantity")
-            price = st.number_input("Fiyat", min_value=0.0, key="order_price")
-            order_type = st.selectbox("Emir Tipi", ["limit", "market"], key="order_type")
-            buy_sell = st.selectbox("İşlem Yönü", ["buy", "sell"], key="order_direction")
-            
-            if st.form_submit_button("Emir Gönder"):
-                try:
-                    order = st.session_state.algolab.send_order(
-                        symbol=symbol,
-                        quantity=quantity,
-                        price=price,
-                        buy_sell=buy_sell,
-                        order_type=order_type
-                    )
-                    st.success("Emir başarıyla gönderildi!")
-                except Exception as e:
-                    st.error(f"Emir gönderme hatası: {str(e)}")
-                    
-        # Bekleyen emirleri göster
-        try:
-            transactions = st.session_state.algolab.get_todays_transaction()
-            if transactions:
-                st.subheader("Bekleyen Emirler")
-                df = pd.DataFrame(transactions)
-                st.dataframe(df)
-        except Exception as e:
-            st.error(f"İşlem geçmişi alınamadı: {str(e)}")
+            # Eğer pozisyonlar varsa, her bir sembol için detaylı bilgi al
+            if not df_positions.empty and 'Symbol' in df_positions.columns:
+                for symbol in df_positions['Symbol'].unique():
+                    equity_info = st.session_state.algolab.get_equity_info(symbol)
+                    if equity_info and equity_info.get('success'):
+                        st.write(f"{symbol} Detayları:")
+                        st.json(equity_info['content'])
+        else:
+            st.warning("Portföy bilgileri alınamadı.")
             
     except Exception as e:
         st.error(f"Veri alınamadı: {str(e)}")
         
+    # Çıkış yap butonu
     if st.button("Çıkış Yap"):
-        for key in st.session_state.keys():
-            del st.session_state[key]
+        st.session_state.logged_in = False
+        st.session_state.sms_pending = False
+        st.session_state.algolab = None
+        st.session_state.sms_time = None
         st.rerun()
