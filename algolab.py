@@ -80,7 +80,7 @@ class Algolab:
             if login and self.token:
                 headers['token'] = self.token
                 
-            url = self.config.api_url + endpoint  # API base URL ile endpoint'i birleştir
+            url = self.config.api_hostname + endpoint
             
             response = requests.post(
                 url=url,
