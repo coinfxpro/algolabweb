@@ -36,20 +36,26 @@ def handle_login():
             st.error("Lütfen tüm bilgileri girin")
             return
 
+        # API key formatını kontrol et
+        if not api_key.startswith("API-"):
+            api_key = "API-" + api_key
+
         algolab = Algolab(api_key, username, password)
         response = algolab.login()
         
         if response and response.get('success'):
             st.session_state.algolab = algolab
-            st.success("Giriş başarılı! SMS kodu bekleniyor...")
             st.session_state.logged_in = True
             st.session_state.sms_pending = True
+            st.success("Giriş başarılı! SMS kodu bekleniyor...")
             st.rerun()
         else:
             st.error(f"Giriş hatası: {response.get('message', 'Bilinmeyen hata')}")
             
     except Exception as e:
         st.error(f"Giriş hatası: {str(e)}")
+        st.session_state.logged_in = False
+        st.session_state.sms_pending = False
 
 def handle_sms():
     try:
