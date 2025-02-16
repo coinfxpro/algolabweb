@@ -55,21 +55,29 @@ def handle_login():
         if not api_key.startswith("API-"):
             api_key = "API-" + api_key
 
+        print("\n=== LOGIN ATTEMPT ===")
+        print(f"API Key: {api_key}")
+        print(f"Username: {username}")
+        
         wait_for_api()
         algolab = Algolab(api_key, username, password)
-        response = algolab.login()
         
-        if response and response.get('success'):
+        try:
+            response = algolab.login()
             st.session_state.algolab = algolab
             st.session_state.sms_pending = True
-            st.session_state.sms_time = datetime.now()  # SMS gönderilme zamanını kaydet
+            st.session_state.sms_time = datetime.now()
             st.success("Giriş başarılı! SMS kodu bekleniyor...")
             st.rerun()
-        else:
-            st.error(f"Giriş hatası: {response.get('message', 'Bilinmeyen hata')}")
+        except Exception as e:
+            error_msg = str(e)
+            st.error(f"Giriş hatası: {error_msg}")
+            st.session_state.logged_in = False
+            st.session_state.sms_pending = False
+            st.session_state.sms_time = None
             
     except Exception as e:
-        st.error(f"Giriş hatası: {str(e)}")
+        st.error(f"Sistem hatası: {str(e)}")
         st.session_state.logged_in = False
         st.session_state.sms_pending = False
         st.session_state.sms_time = None
