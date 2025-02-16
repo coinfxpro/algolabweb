@@ -71,7 +71,8 @@ class Algolab:
             if login and self.token:
                 headers['token'] = self.token
                 
-            url = self.config.api_hostname + endpoint
+            from urllib.parse import urljoin
+            url = urljoin(self.config.api_url + "/", endpoint)
             
             print("\n=== API REQUEST DETAILS ===")
             print(f"URL: {url}")
