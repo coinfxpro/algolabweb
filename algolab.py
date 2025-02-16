@@ -211,35 +211,43 @@ class Algolab:
             print(f"GetEquityInfo error: {str(e)}")
             raise
 
-    def submit_order(self, symbol, side, quantity, price=None, order_type="MARKET"):
+    def submit_order(self, symbol, quantity, side, price=None, order_type="LIMIT"):
+        """
+        Emir gönderme işlemi
+        Args:
+            symbol (str): İşlem yapılacak sembol (örn: GARAN)
+            quantity (int): İşlem miktarı
+            side (str): İşlem yönü (BUY veya SELL)
+            price (float, optional): Limit fiyat. MARKET emirlerde None olabilir
+            order_type (str): Emir tipi (LIMIT veya MARKET)
+        Returns:
+            dict: API yanıtı
+        """
         try:
             payload = {
                 "symbol": symbol,
-                "direction": "Buy" if side.upper() == "BUY" else "Sell",
-                "pricetype": "limit" if order_type.upper() == "LIMIT" else "piyasa",
-                "lot": str(quantity),
-                "sms": False,
-                "email": False,
-                "subAccount": ""
+                "quantity": quantity,
+                "side": side,
+                "orderType": order_type
             }
             
-            if price is not None and order_type.upper() == "LIMIT":
-                payload["price"] = str(price)
-            else:
-                payload["price"] = ""
-
-            response = self.post(
-                endpoint=self.config.URL_SEND_ORDER,
-                payload=payload,
-                login=False
-            )
+            if order_type == "LIMIT" and price is not None:
+                payload["price"] = price
+                
+            response = self.post(self.config.URL_SEND_ORDER, payload=payload)
             
             if response.status_code == 200:
-                return response.json()
+                data = response.json()
+                if data.get('success'):
+                    return data
+                else:
+                    raise Exception(f"Submit order failed: {data.get('message', 'Unknown error')}")
             else:
-                raise Exception(f"Failed to submit order: {response.text}")
+                raise Exception(f"Submit order request failed with status {response.status_code}: {response.text}")
+                
         except Exception as e:
-            raise Exception(f"Submit order error: {str(e)}")
+            print(f"Submit order error: {str(e)}")
+            raise
 
     def session_refresh(self):
         try:

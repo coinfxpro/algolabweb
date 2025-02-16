@@ -13,11 +13,17 @@ class AlgolabConfig:
         self.api_url = self.api_hostname + "/api"    # Yani: https://www.algolab.com.tr/api
         self.socket_url = f"wss://{self.hostname}/api/ws"
 
+        # API endpoint'leri
+        self.API_HOST = "www.algolab.com.tr"
+        self.API_SCHEMA = "https"
+        self.API_PORT = "443"
+        self.API_BASE_PATH = "/api"
+
         # API Endpoints - orijinal API ile tanımlandığı gibi
         self.URL_LOGIN_USER = "/api/LoginUser"
         self.URL_LOGIN_CONTROL = "/api/LoginUserControl"
         self.URL_SESSION_REFRESH = "/api/SessionRefresh"
-        self.URL_SEND_ORDER = "/api/SendOrder"
+        self.URL_SEND_ORDER = f"{self.API_SCHEMA}://{self.API_HOST}:{self.API_PORT}{self.API_BASE_PATH}/SendOrder"
         self.URL_MODIFY_ORDER = "/api/ModifyOrder"
         self.URL_DELETE_ORDER = "/api/DeleteOrder"
         self.URL_DELETE_ORDER_VIOP = "/api/DeleteOrderViop"
