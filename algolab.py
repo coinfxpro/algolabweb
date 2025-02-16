@@ -72,22 +72,39 @@ class Algolab:
         API'ye POST isteği gönderme
         """
         try:
-            headers = {
-                'Content-Type': 'application/json',
-                'apikey': self.api_key
-            }
-            
-            if login and self.token:
-                headers['token'] = self.token
-                
+            if not login:
+                headers = {
+                    'Content-Type': 'application/json',
+                    'APIKEY': self.api_key
+                }
+            else:
+                checker = self.make_checker(endpoint, payload or {})
+                headers = {
+                    'Content-Type': 'application/json',
+                    'APIKEY': self.api_key,
+                    'Authorization': self.hash,
+                    'Checker': checker
+                }
+                if self.token:
+                    headers['Token'] = self.token
+
             url = self.config.api_hostname + endpoint
+            
+            print("\n=== API REQUEST DETAILS ===")
+            print(f"URL: {url}")
+            print(f"Headers: {json.dumps(headers, indent=2)}")
+            print(f"Payload: {json.dumps(payload, indent=2) if payload else None}")
             
             response = requests.post(
                 url=url,
                 json=payload,
                 headers=headers,
-                verify=True
+                verify=False
             )
+            
+            print("\n=== API RESPONSE DETAILS ===")
+            print(f"Status Code: {response.status_code}")
+            print(f"Response Text: {response.text}")
             
             return response
             
