@@ -63,18 +63,18 @@ class Algolab:
         API'ye POST isteği gönderme
         """
         try:
-            if not login:
-                headers = {"APIKEY": self.api_key}
-            else:
+            url = self.config.api_url
+            
+            if login:
                 checker = self.make_checker(endpoint, payload or {})
                 headers = {
                     "APIKEY": self.api_key,
                     "Checker": checker,
                     "Authorization": self.hash
                 }
+            else:
+                headers = {"APIKEY": self.api_key}
                 
-            url = self.config.api_url
-            
             print("\n=== API REQUEST DETAILS ===")
             print(f"URL: {url}{endpoint}")
             print(f"Headers: {json.dumps(headers, indent=2)}")
@@ -109,7 +109,7 @@ class Algolab:
             response = self.post(
                 endpoint=self.config.URL_LOGIN_USER,
                 payload=payload,
-                login=False
+                login=False  # İlk login'de header'da sadece APIKEY olmalı
             )
             
             if response.status_code == 200:
