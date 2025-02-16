@@ -5,30 +5,32 @@ class AlgolabConfig:
         # URL configuration
         self.hostname = "www.algolab.com.tr"
         self.api_hostname = f"https://{self.hostname}"
-        self.api_url = f"{self.api_hostname}/API"  # Use capital API
-        self.socket_url = f"wss://{self.hostname}/api/ws"
+        self.api_url = f"{self.api_hostname}/API"  # Capital API
 
-        # API Endpoints - endpoints are defined without the leading /API/ because it's appended to the base URL
-        self.URL_LOGIN_USER = "LoginUser"
-        self.URL_LOGIN_CONTROL = "LoginUserControl"
-        self.URL_SESSION_REFRESH = "SessionRefresh"
-        self.URL_SEND_ORDER = "SendOrder"
-        self.URL_MODIFY_ORDER = "ModifyOrder"
-        self.URL_DELETE_ORDER = "DeleteOrder"
-        self.URL_DELETE_ORDER_VIOP = "DeleteOrderViop"
-        self.URL_GET_EQUITY_INFO = "GetEquityInfo"
-        self.URL_GET_CANDLE_DATA = "GetCandleData"
-        self.URL_GET_INSTANT_POSITION = "GetInstantPosition"
-        self.URL_GET_VIOP_CUSTOMER_OVERALL = "ViopCustomerOverall"
-        self.URL_GET_SUBACCOUNTS = "GetSubAccounts"
-        self.URL_GET_TODAYS_TRANSACTION = "TodaysTransaction"
-        self.URL_GET_VIOP_CUSTOMER_TRANSACTIONS = "ViopCustomerTransactions"
-        self.URL_GET_EQUITY_ORDER_HISTORY = "GetEquityOrderHistory"
-        self.URL_GET_VIOP_ORDER_HISTORY = "GetViopOrderHistory"
-        self.URL_GET_ACCOUNT_EXTRE = "AccountExtre"
-        self.URL_GET_CASH_FLOW = "CashFlow"
-        self.URL_RISK_SIMULATION = "RiskSimulation"
-        self.URL_VIOP_COLLATERAL_INFO = "ViopCollateralInfo"
+        # API Endpoints - without /api/ prefix
+        self.URL_LOGIN_USER = "/LoginUser"
+        self.URL_LOGIN_CONTROL = "/LoginUserControl"
+        self.URL_SESSION_REFRESH = "/SessionRefresh"
+        self.URL_SEND_ORDER = "/SendOrder"
+        self.URL_MODIFY_ORDER = "/ModifyOrder"
+        self.URL_DELETE_ORDER = "/DeleteOrder"
+        self.URL_DELETE_ORDER_VIOP = "/DeleteOrderViop"
+        self.URL_GET_EQUITY_INFO = "/GetEquityInfo"
+        self.URL_GET_CANDLE_DATA = "/GetCandleData"
+        self.URL_GET_INSTANT_POSITION = "/GetInstantPosition"
+        self.URL_GET_VIOP_CUSTOMER_OVERALL = "/ViopCustomerOverall"
+        self.URL_GET_SUBACCOUNTS = "/GetSubAccounts"
+        self.URL_GET_TODAYS_TRANSACTION = "/TodaysTransaction"
+        self.URL_GET_VIOP_CUSTOMER_TRANSACTIONS = "/ViopCustomerTransactions"
+        self.URL_GET_EQUITY_ORDER_HISTORY = "/GetEquityOrderHistory"
+        self.URL_GET_VIOP_ORDER_HISTORY = "/GetViopOrderHistory"
+        self.URL_GET_ACCOUNT_EXTRE = "/AccountExtre"
+        self.URL_GET_CASH_FLOW = "/CashFlow"
+        self.URL_RISK_SIMULATION = "/RiskSimulation"
+        self.URL_VIOP_COLLATERAL_INFO = "/ViopCollateralInfo"
+
+        # Socket URL
+        self.socket_url = f"wss://{self.hostname}/api/ws"
 
     @property
     def api_key(self):
