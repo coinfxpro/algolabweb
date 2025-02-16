@@ -10,8 +10,8 @@ class AlgolabConfig:
         # URL yapılandırması - orijinal API ile aynı
         self.hostname = "www.algolab.com.tr"
         self.api_hostname = f"https://{self.hostname}"
-        self.api_url = self.api_hostname  # /api yok
-        self.socket_url = f"wss://{self.hostname}/api/ws"
+        self.api_url = self.api_hostname  # /api yok, orijinal API'de olduğu gibi
+        self.socket_url = f"wss://{self.hostname}/ws"  # /api yok, orijinal API'de olduğu gibi
 
         # API Endpoints - orijinal API ile aynı
         self.URL_LOGIN_USER = "/api/LoginUser"
