@@ -136,7 +136,7 @@ elif st.session_state.logged_in and not st.session_state.sms_pending:
     # Portföy Tab'ı
     with tab1:
         try:
-            with st.spinner("Portföy bilgileri alınıyor..."):
+            with st.spinner("Portföy bilgileri alınıyor... (API kısıtlaması nedeniyle her istek arasında 5 saniye bekleme olacaktır)"):
                 wait_for_api()
                 positions = st.session_state.algolab.GetInstantPosition()
                 if positions and positions.get('success'):
@@ -145,6 +145,7 @@ elif st.session_state.logged_in and not st.session_state.sms_pending:
                     st.dataframe(df_positions)
                     
                     if not df_positions.empty and 'Symbol' in df_positions.columns:
+                        st.info("Her sembol için detay bilgisi alınıyor... (Her istek arasında 5 saniye bekleme olacaktır)")
                         for symbol in df_positions['Symbol'].unique():
                             wait_for_api()
                             equity_info = st.session_state.algolab.GetEquityInfo(symbol)

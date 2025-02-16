@@ -67,42 +67,47 @@ class Algolab:
         checker = hashlib.sha256(data.encode('utf-8')).hexdigest()
         return checker
 
-    def post(self, endpoint, payload, login=False):
+    def post(self, endpoint, payload=None, login=True):
         """
-        API'ye POST isteği gönderir
+        API'ye POST isteği gönderme
         """
-        url = self.config.api_url
-        if not login:
-            checker = self.make_checker(endpoint, payload)
+        try:
             headers = {
-                "APIKEY": self.api_key,
-                "Checker": checker,
-                "Authorization": self.hash
+                'Content-Type': 'application/json',
+                'apikey': self.api_key
             }
-        else:
-            headers = {"APIKEY": self.api_key}
             
-        resp = requests.post(url + endpoint, json=payload, headers=headers, verify=False)
-        return resp
+            if login and self.token:
+                headers['token'] = self.token
+                
+            response = requests.post(
+                url=self.config.api_url + endpoint,
+                json=payload,
+                headers=headers,
+                verify=True
+            )
+            
+            return response
+            
+        except Exception as e:
+            print(f"POST request error: {str(e)}")
+            raise
 
     def login(self):
         """
-        API'ye login olmak için kullanılır
+        API'ye login olma işlemi
         """
         try:
-            if not self.api_key.startswith("API-"):
-                raise Exception("API Key must start with 'API-'")
-                
-            username = self.encrypt(self.username)
-            password = self.encrypt(self.password)
-            payload = {"username": username, "password": password}
+            u = self.encrypt(self.username)
+            p = self.encrypt(self.password)
+            payload = {"username": u, "password": p}
             
-            response = self.post(self.config.URL_LOGIN_USER, payload=payload, login=True)
+            response = self.post(self.config.URL_LOGIN_USER, payload=payload, login=False)
             
             if response.status_code == 200:
                 data = response.json()
-                if data.get("success"):
-                    self.token = data["content"]["token"]
+                if data.get('success'):
+                    self.token = data.get('content', {}).get('token', '')
                     return data
                 else:
                     raise Exception(f"Login failed: {data.get('message', 'Unknown error')}")
@@ -144,7 +149,7 @@ class Algolab:
             response = self.post(
                 endpoint=self.config.URL_GET_EQUITY_INFO,
                 payload=payload,
-                login=False
+                login=True
             )
             
             if response.status_code == 200:
@@ -159,7 +164,7 @@ class Algolab:
             response = self.post(
                 endpoint=self.config.URL_GET_INSTANT_POSITION,
                 payload={},
-                login=False
+                login=True
             )
             
             if response.status_code == 200:
@@ -175,7 +180,7 @@ class Algolab:
         """
         try:
             payload = {'Subaccount': sub_account}
-            response = self.post(self.config.URL_GET_INSTANT_POSITION, payload=payload)
+            response = self.post(self.config.URL_GET_INSTANT_POSITION, payload=payload, login=True)
             
             if response.status_code == 200:
                 data = response.json()
@@ -196,7 +201,7 @@ class Algolab:
         """
         try:
             payload = {'symbol': symbol}
-            response = self.post(self.config.URL_GET_EQUITY_INFO, payload=payload)
+            response = self.post(self.config.URL_GET_EQUITY_INFO, payload=payload, login=True)
             
             if response.status_code == 200:
                 data = response.json()
@@ -234,7 +239,7 @@ class Algolab:
             if order_type == "LIMIT" and price is not None:
                 payload["price"] = price
                 
-            response = self.post(self.config.URL_SEND_ORDER, payload=payload)
+            response = self.post(self.config.URL_SEND_ORDER, payload=payload, login=True)
             
             if response.status_code == 200:
                 data = response.json()
@@ -254,7 +259,7 @@ class Algolab:
             response = self.post(
                 endpoint=self.config.URL_SESSION_REFRESH,
                 payload={},
-                login=False
+                login=True
             )
             
             if response.status_code == 200:
@@ -272,7 +277,7 @@ class Algolab:
             response = self.post(
                 endpoint=self.config.URL_GET_TODAYS_TRANSACTION,  # Config'deki isimle aynı
                 payload={},
-                login=False
+                login=True
             )
             
             if response.status_code == 200:
