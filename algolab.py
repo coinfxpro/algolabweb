@@ -80,8 +80,10 @@ class Algolab:
             if login and self.token:
                 headers['token'] = self.token
                 
+            url = self.config.api_url + endpoint  # API base URL ile endpoint'i birleştir
+            
             response = requests.post(
-                url=endpoint,  # Artık endpoint tam URL olduğu için direkt kullanıyoruz
+                url=url,
                 json=payload,
                 headers=headers,
                 verify=True
