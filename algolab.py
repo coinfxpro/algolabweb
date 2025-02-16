@@ -57,34 +57,21 @@ class Algolab:
 
     def make_checker(self, endpoint, payload):
         """
-        API istekleri için checker oluşturma
+        API istekleri için Checker header'ı oluşturur
         """
         if len(payload) > 0:
             body = json.dumps(payload).replace(' ', '')
         else:
             body = ""
-            
-        print("\n=== CHECKER DETAILS ===")
-        print(f"API Key: {self.api_key}")
-        print(f"API Hostname: {self.config.api_hostname}")
-        print(f"Endpoint: {endpoint}")
-        print(f"Body: {body}")
-        
         data = self.api_key + self.config.api_hostname + endpoint + body
         checker = hashlib.sha256(data.encode('utf-8')).hexdigest()
-        
-        print(f"Data for checker: {data}")
-        print(f"Generated checker: {checker}")
-        
         return checker
 
     def post(self, endpoint, payload, login=False):
         """
-        API istekleri için ortak method
+        API'ye POST isteği gönderir
         """
         url = self.config.api_url
-        
-        # Header yapısı - orijinal API ile aynı
         if not login:
             checker = self.make_checker(endpoint, payload)
             headers = {
@@ -95,64 +82,22 @@ class Algolab:
         else:
             headers = {"APIKEY": self.api_key}
             
-        print("\n=== API REQUEST DETAILS ===")
-        print(f"URL: {url}")
-        print(f"Endpoint: {endpoint}")
-        print(f"Full URL: {url + endpoint}")
-        print(f"Headers: {headers}")
-        print(f"Payload: {payload}")
-        
-        response = requests.post(
-            url + endpoint,
-            json=payload,
-            headers=headers,
-            verify=False
-        )
-        
-        print("\n=== API RESPONSE DETAILS ===")
-        print(f"Status Code: {response.status_code}")
-        print(f"Response Headers: {dict(response.headers)}")
-        print(f"Response Text: {response.text}")
-        
-        return response
+        resp = requests.post(url + endpoint, json=payload, headers=headers, verify=False)
+        return resp
 
     def login(self):
         """
         API'ye login olmak için kullanılır
         """
         try:
-            print("\n=== LOGIN ATTEMPT STARTED ===")
-            print(f"API Key: {self.api_key}")
-            print(f"API Code: {self.api_code}")
-            print(f"API URL: {self.config.api_url}")
-            print(f"API Hostname: {self.config.api_hostname}")
-            print(f"Login Endpoint: {self.config.URL_LOGIN_USER}")
-            print(f"Full URL: {self.config.api_url + self.config.URL_LOGIN_USER}")
-            
             if not self.api_key.startswith("API-"):
                 raise Exception("API Key must start with 'API-'")
                 
             username = self.encrypt(self.username)
             password = self.encrypt(self.password)
             payload = {"username": username, "password": password}
-            headers = {"APIKEY": self.api_key}
             
-            print("\n=== REQUEST DETAILS ===")
-            print(f"Headers: {headers}")
-            print(f"Payload: {payload}")
-            
-            response = requests.post(
-                self.config.api_url + self.config.URL_LOGIN_USER,
-                json=payload,
-                headers=headers,
-                verify=False
-            )
-            
-            print("\n=== RESPONSE DETAILS ===")
-            print(f"Status Code: {response.status_code}")
-            print(f"Response Headers: {dict(response.headers)}")
-            print(f"Response Text: {response.text}")
-            print(f"Response URL: {response.url}")
+            response = self.post(self.config.URL_LOGIN_USER, payload=payload, login=True)
             
             if response.status_code == 200:
                 data = response.json()
@@ -177,7 +122,7 @@ class Algolab:
             password = self.encrypt(sms_code)
             payload = {"token": token, "password": password}
             
-            response = self.post(self.config.URL_LOGIN_CONTROL, payload, login=True)
+            response = self.post(self.config.URL_LOGIN_CONTROL, payload=payload, login=True)
             
             if response.status_code == 200:
                 data = response.json()
