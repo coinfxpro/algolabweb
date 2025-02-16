@@ -19,28 +19,21 @@ class Algolab:
         except:
             self.api_code = api_key
             
-        self.api_key = "API-" + self.api_code  # API key formatı: "API-XXXXX"
+        self.api_key = "API-" + self.api_code
         self.username = username
         self.password = password
+        
         self.config = AlgolabConfig()
         self.token = ""
         self.hash = ""
-        self.sms_code = ""
         
-        # Orijinal header yapısı
         self.headers = {"APIKEY": self.api_key}
-        
-        print(f"Initialized with API Key: {self.api_key}")  # Debug için
 
     def encrypt(self, text):
         """
         Orijinal API'nin şifreleme yöntemi
         """
         try:
-            print("\n=== ENCRYPTION DETAILS ===")
-            print(f"Text to encrypt: {text}")
-            print(f"API Code: {self.api_code}")
-            
             iv = b'\0' * 16
             key = base64.b64decode(self.api_code.encode('utf-8'))
             cipher = AES.new(key, AES.MODE_CBC, iv)
@@ -48,8 +41,6 @@ class Algolab:
             padded_bytes = pad(bytes_text, 16)
             encrypted = cipher.encrypt(padded_bytes)
             result = base64.b64encode(encrypted).decode("utf-8")
-            
-            print(f"Encrypted result: {result}")
             return result
         except Exception as e:
             print(f"Encryption error: {str(e)}")
@@ -72,22 +63,14 @@ class Algolab:
         API'ye POST isteği gönderme
         """
         try:
-            if not login:
-                headers = {
-                    'Content-Type': 'application/json',
-                    'APIKEY': self.api_key
-                }
-            else:
-                checker = self.make_checker(endpoint, payload or {})
-                headers = {
-                    'Content-Type': 'application/json',
-                    'APIKEY': self.api_key,
-                    'Authorization': self.hash,
-                    'Checker': checker
-                }
-                if self.token:
-                    headers['Token'] = self.token
-
+            headers = {
+                'Content-Type': 'application/json',
+                'apikey': self.api_key
+            }
+            
+            if login and self.token:
+                headers['token'] = self.token
+                
             url = self.config.api_hostname + endpoint
             
             print("\n=== API REQUEST DETAILS ===")
@@ -121,7 +104,11 @@ class Algolab:
             p = self.encrypt(self.password)
             payload = {"username": u, "password": p}
             
-            response = self.post(self.config.URL_LOGIN_USER, payload=payload, login=False)
+            response = self.post(
+                endpoint=self.config.URL_LOGIN_USER,
+                payload=payload,
+                login=False
+            )
             
             if response.status_code == 200:
                 data = response.json()

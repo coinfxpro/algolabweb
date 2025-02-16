@@ -2,28 +2,23 @@ import streamlit as st
 
 class AlgolabConfig:
     def __init__(self):
-        # API bilgileri
-        self.api_key = None
-        self.username = None
-        self.password = None
-        
-        # URL yapılandırması - orijinal API ile aynı
+        # URL yapılandırması
         self.hostname = "www.algolab.com.tr"
         self.api_hostname = f"https://{self.hostname}"
-        self.api_url = self.api_hostname + "/api"    # Yani: https://www.algolab.com.tr/api
+        self.api_url = self.api_hostname + "/api"
         self.socket_url = f"wss://{self.hostname}/api/ws"
 
-        # API endpoint'leri
-        self.URL_LOGIN_USER = "/api/LoginUser"  # Endpoint'leri sadece path olarak tutuyoruz
+        # API Endpoints
+        self.URL_LOGIN_USER = "/api/LoginUser"
         self.URL_LOGIN_CONTROL = "/api/LoginUserControl"
-        self.URL_GET_INSTANT_POSITION = "/api/GetInstantPosition"
-        self.URL_GET_EQUITY_INFO = "/api/GetEquityInfo"
+        self.URL_SESSION_REFRESH = "/api/SessionRefresh"
         self.URL_SEND_ORDER = "/api/SendOrder"
         self.URL_MODIFY_ORDER = "/api/ModifyOrder"
         self.URL_DELETE_ORDER = "/api/DeleteOrder"
         self.URL_DELETE_ORDER_VIOP = "/api/DeleteOrderViop"
-        self.URL_SESSION_REFRESH = "/api/SessionRefresh"
+        self.URL_GET_EQUITY_INFO = "/api/GetEquityInfo"
         self.URL_GET_CANDLE_DATA = "/api/GetCandleData"
+        self.URL_GET_INSTANT_POSITION = "/api/GetInstantPosition"
         self.URL_GET_VIOP_CUSTOMER_OVERALL = "/api/ViopCustomerOverall"
         self.URL_GET_SUBACCOUNTS = "/api/GetSubAccounts"
         self.URL_GET_TODAYS_TRANSACTION = "/api/TodaysTransaction"
