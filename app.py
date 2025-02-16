@@ -23,12 +23,22 @@ if 'sms_pending' not in st.session_state:
     st.session_state.sms_pending = False
 if 'sms_time' not in st.session_state:
     st.session_state.sms_time = None
+if 'last_api_call' not in st.session_state:
+    st.session_state.last_api_call = None
 
 def format_number(value):
     try:
         return f"{float(value):,.2f}"
     except:
         return value
+
+def wait_for_api():
+    """API istekleri arasında en az 5 saniye bekle"""
+    if st.session_state.last_api_call:
+        elapsed = (datetime.now() - st.session_state.last_api_call).total_seconds()
+        if elapsed < 5:
+            time.sleep(5 - elapsed)
+    st.session_state.last_api_call = datetime.now()
 
 def handle_login():
     try:
@@ -44,6 +54,7 @@ def handle_login():
         if not api_key.startswith("API-"):
             api_key = "API-" + api_key
 
+        wait_for_api()
         algolab = Algolab(api_key, username, password)
         response = algolab.login()
         
@@ -64,6 +75,7 @@ def handle_login():
 
 def handle_sms():
     try:
+        wait_for_api()
         if st.session_state.algolab.login_control(st.session_state.sms_code):
             st.session_state.logged_in = True
             st.session_state.sms_pending = False
@@ -119,22 +131,25 @@ if not st.session_state.logged_in:
 elif st.session_state.logged_in and not st.session_state.sms_pending:
     # Portföy bilgilerini göster
     try:
-        # Portföy bilgilerini göster
-        positions = st.session_state.algolab.GetInstantPosition()
-        if positions and positions.get('success'):
-            st.subheader("Portföy Bilgileri")
-            df_positions = pd.DataFrame(positions['content'])
-            st.dataframe(df_positions)
-            
-            # Eğer pozisyonlar varsa, her bir sembol için detaylı bilgi al
-            if not df_positions.empty and 'Symbol' in df_positions.columns:
-                for symbol in df_positions['Symbol'].unique():
-                    equity_info = st.session_state.algolab.GetEquityInfo(symbol)
-                    if equity_info and equity_info.get('success'):
-                        st.write(f"{symbol} Detayları:")
-                        st.json(equity_info['content'])
-        else:
-            st.warning("Portföy bilgileri alınamadı.")
+        with st.spinner("Portföy bilgileri alınıyor..."):
+            # Portföy bilgilerini göster
+            wait_for_api()
+            positions = st.session_state.algolab.GetInstantPosition()
+            if positions and positions.get('success'):
+                st.subheader("Portföy Bilgileri")
+                df_positions = pd.DataFrame(positions['content'])
+                st.dataframe(df_positions)
+                
+                # Eğer pozisyonlar varsa, her bir sembol için detaylı bilgi al
+                if not df_positions.empty and 'Symbol' in df_positions.columns:
+                    for symbol in df_positions['Symbol'].unique():
+                        wait_for_api()
+                        equity_info = st.session_state.algolab.GetEquityInfo(symbol)
+                        if equity_info and equity_info.get('success'):
+                            st.write(f"{symbol} Detayları:")
+                            st.json(equity_info['content'])
+            else:
+                st.warning("Portföy bilgileri alınamadı.")
             
     except Exception as e:
         st.error(f"Veri alınamadı: {str(e)}")
@@ -145,4 +160,5 @@ elif st.session_state.logged_in and not st.session_state.sms_pending:
         st.session_state.sms_pending = False
         st.session_state.algolab = None
         st.session_state.sms_time = None
+        st.session_state.last_api_call = None
         st.rerun()
