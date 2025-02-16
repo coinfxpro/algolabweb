@@ -121,14 +121,38 @@ class Algolab:
         API'ye login olmak için kullanılır
         """
         try:
+            print("\n=== LOGIN ATTEMPT STARTED ===")
+            print(f"API Key: {self.api_key}")
+            print(f"API Code: {self.api_code}")
+            print(f"API URL: {self.config.api_url}")
+            print(f"API Hostname: {self.config.api_hostname}")
+            print(f"Login Endpoint: {self.config.URL_LOGIN_USER}")
+            print(f"Full URL: {self.config.api_url + self.config.URL_LOGIN_USER}")
+            
             if not self.api_key.startswith("API-"):
                 raise Exception("API Key must start with 'API-'")
                 
             username = self.encrypt(self.username)
             password = self.encrypt(self.password)
             payload = {"username": username, "password": password}
+            headers = {"APIKEY": self.api_key}
             
-            response = self.post(self.config.URL_LOGIN_USER, payload, login=True)
+            print("\n=== REQUEST DETAILS ===")
+            print(f"Headers: {headers}")
+            print(f"Payload: {payload}")
+            
+            response = requests.post(
+                self.config.api_url + self.config.URL_LOGIN_USER,
+                json=payload,
+                headers=headers,
+                verify=False
+            )
+            
+            print("\n=== RESPONSE DETAILS ===")
+            print(f"Status Code: {response.status_code}")
+            print(f"Response Headers: {dict(response.headers)}")
+            print(f"Response Text: {response.text}")
+            print(f"Response URL: {response.url}")
             
             if response.status_code == 200:
                 data = response.json()
