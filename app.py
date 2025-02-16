@@ -179,7 +179,7 @@ elif st.session_state.logged_in and not st.session_state.sms_pending:
                 try:
                     if not symbol:
                         st.error("Lütfen sembol girin")
-                        return
+                        st.stop()  # return yerine st.stop() kullanıyoruz
                         
                     wait_for_api()
                     # API'ye gönderilecek değerleri hazırla
