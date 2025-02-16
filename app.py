@@ -49,7 +49,6 @@ def handle_login():
         
         if response and response.get('success'):
             st.session_state.algolab = algolab
-            st.session_state.logged_in = True
             st.session_state.sms_pending = True
             st.session_state.sms_time = datetime.now()  # SMS gönderilme zamanını kaydet
             st.success("Giriş başarılı! SMS kodu bekleniyor...")
@@ -116,8 +115,8 @@ if not st.session_state.logged_in:
             st.session_state.sms_time = None
             st.rerun()
 
-# Login olmuşsa ana ekranı göster
-else:
+# Login olmuşsa ve SMS doğrulaması tamamlanmışsa ana ekranı göster
+elif st.session_state.logged_in and not st.session_state.sms_pending:
     # Portföy bilgilerini göster
     try:
         # Portföy bilgilerini göster
