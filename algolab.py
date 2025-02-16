@@ -81,7 +81,7 @@ class Algolab:
                 headers['token'] = self.token
                 
             response = requests.post(
-                url=self.config.api_url + endpoint,
+                url=endpoint,  # Artık endpoint tam URL olduğu için direkt kullanıyoruz
                 json=payload,
                 headers=headers,
                 verify=True
