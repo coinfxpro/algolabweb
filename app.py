@@ -121,7 +121,7 @@ else:
     # Portföy bilgilerini göster
     try:
         # Portföy bilgilerini göster
-        positions = st.session_state.algolab.get_instant_position()
+        positions = st.session_state.algolab.GetInstantPosition()
         if positions and positions.get('success'):
             st.subheader("Portföy Bilgileri")
             df_positions = pd.DataFrame(positions['content'])
@@ -130,7 +130,7 @@ else:
             # Eğer pozisyonlar varsa, her bir sembol için detaylı bilgi al
             if not df_positions.empty and 'Symbol' in df_positions.columns:
                 for symbol in df_positions['Symbol'].unique():
-                    equity_info = st.session_state.algolab.get_equity_info(symbol)
+                    equity_info = st.session_state.algolab.GetEquityInfo(symbol)
                     if equity_info and equity_info.get('success'):
                         st.write(f"{symbol} Detayları:")
                         st.json(equity_info['content'])

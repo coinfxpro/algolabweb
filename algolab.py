@@ -169,6 +169,48 @@ class Algolab:
         except Exception as e:
             raise Exception(f"Get positions error: {str(e)}")
 
+    def GetInstantPosition(self, sub_account=""):
+        """
+        Yatırım Hesabınıza bağlı alt hesapları (101, 102 v.b.) ve limitlerini görüntüleyebilirsiniz.
+        """
+        try:
+            payload = {'Subaccount': sub_account}
+            response = self.post(self.config.URL_GET_INSTANT_POSITION, payload=payload)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get('success'):
+                    return data
+                else:
+                    raise Exception(f"GetInstantPosition failed: {data.get('message', 'Unknown error')}")
+            else:
+                raise Exception(f"GetInstantPosition request failed with status {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            print(f"GetInstantPosition error: {str(e)}")
+            raise
+
+    def GetEquityInfo(self, symbol):
+        """
+        Sembolle ilgili tavan taban yüksek düşük anlık fiyat gibi bilgileri çekebilirsiniz.
+        """
+        try:
+            payload = {'symbol': symbol}
+            response = self.post(self.config.URL_GET_EQUITY_INFO, payload=payload)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get('success'):
+                    return data
+                else:
+                    raise Exception(f"GetEquityInfo failed: {data.get('message', 'Unknown error')}")
+            else:
+                raise Exception(f"GetEquityInfo request failed with status {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            print(f"GetEquityInfo error: {str(e)}")
+            raise
+
     def submit_order(self, symbol, side, quantity, price=None, order_type="MARKET"):
         try:
             payload = {
