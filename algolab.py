@@ -195,7 +195,7 @@ class Algolab:
             print(f"Failed to get equity info: {str(e)}")
             raise
 
-    def submit_order(self, symbol, quantity, price, order_type, side, subaccount="", sms=False, email=False):
+    def submit_order(self, symbol, quantity, price, order_type, side, sub_account="", sms=False, email=False):
         """
         Emir gönderir
         """
@@ -208,7 +208,7 @@ class Algolab:
                 "lot": str(quantity),
                 "sms": sms,
                 "email": email,
-                "subAccount": subaccount
+                "subAccount": sub_account
             }
             response = self.post(self.config.URL_SEND_ORDER, payload=payload, login=True)
             return response
