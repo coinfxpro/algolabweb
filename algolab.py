@@ -205,6 +205,13 @@ class Algolab:
         :param order_type: Emir Tipi (limit/piyasa)
         """
         try:
+            # Login kontrolü
+            if not self.hash:
+                print("Yeniden login yapılıyor...")
+                self.login()
+                if not self.hash:
+                    raise Exception("Login başarısız")
+
             # API'nin beklediği formata dönüştür
             side_map = {"ALIŞ": "BUY", "SATIŞ": "SELL"}
             
@@ -218,6 +225,10 @@ class Algolab:
                 "email": False,  # Varsayılan olarak kapalı
                 "subAccount": ""  # Varsayılan olarak boş
             }
+            
+            print("\n=== EMIR DETAYLARI ===")
+            print(f"Payload: {json.dumps(payload, indent=2)}")
+            print(f"Headers: APIKEY={self.api_key}, Hash={self.hash}")
             
             response = self.post(self.config.URL_SEND_ORDER, payload=payload, login=True)
             return response
