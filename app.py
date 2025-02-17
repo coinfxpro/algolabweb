@@ -138,6 +138,16 @@ if not st.session_state.logged_in:
 
 # Login olmuşsa ve SMS doğrulaması tamamlanmışsa ana ekranı göster
 elif st.session_state.logged_in and not st.session_state.sms_pending:
+    # Sağ üst köşeye yenile ve çıkış butonları
+    col1, col2, col3 = st.columns([6, 1, 1])
+    with col2:
+        if st.button("🔄 Yenile"):
+            st.rerun()
+    with col3:
+        if st.button("🚪 Çıkış"):
+            st.session_state.clear()
+            st.rerun()
+            
     # Tab'lar oluştur
     tab1, tab2, tab3 = st.tabs(["📊 Portföy", "📈 Manuel Emir", "🔗 TradingView Webhook"])
     
@@ -188,82 +198,85 @@ elif st.session_state.logged_in and not st.session_state.sms_pending:
                 try:
                     if not symbol:
                         st.error("Lütfen sembol girin")
-                        st.stop()  # return yerine st.stop() kullanıyoruz
+                        st.stop()
                         
                     wait_for_api()
                     # API'ye gönderilecek değerleri hazırla
                     side_map = {"ALIŞ": "BUY", "SATIŞ": "SELL"}
-                    order = st.session_state.algolab.submit_order(
-                        symbol=symbol,
-                        quantity=quantity,
-                        price=price if order_type == "LIMIT" else None,
-                        order_type=order_type,
-                        side=side_map[side]
+                    
+                    order_data = {
+                        "symbol": symbol.upper(),
+                        "quantity": quantity,
+                        "price": price if order_type == "LIMIT" else 0,
+                        "orderType": order_type,
+                        "side": side_map[side]
+                    }
+                    
+                    response = st.session_state.algolab.post(
+                        endpoint=st.session_state.algolab.config.URL_SEND_ORDER,
+                        payload=order_data
                     )
                     
-                    if order and order.get('success'):
-                        st.success(f"Emir başarıyla gönderildi! Emir No: {order.get('content', {}).get('orderId', 'N/A')}")
+                    if response.status_code == 200:
+                        data = response.json()
+                        if data.get('success'):
+                            st.success(f"Emir başarıyla gönderildi! Emir No: {data.get('content', {}).get('orderId', 'N/A')}")
+                        else:
+                            st.error(f"Emir gönderilemedi: {data.get('message', 'Bilinmeyen hata')}")
                     else:
-                        st.error(f"Emir gönderilemedi: {order.get('message', 'Bilinmeyen hata')}")
+                        st.error(f"Emir gönderilemedi. HTTP Status: {response.status_code}")
                         
                 except Exception as e:
                     st.error(f"Emir gönderme hatası: {str(e)}")
-    
+                    
     # TradingView Webhook Tab'ı
     with tab3:
-        st.subheader("TradingView Webhook Entegrasyonu")
+        st.subheader("TradingView Webhook Ayarları")
         
-        # Webhook URL'ini göster
-        st.info("📌 **Webhook URL'i**")
-        webhook_url = "http://your-domain.com/webhook"  # Gerçek URL'i buraya ekleyin
+        # Webhook URL'i göster
+        webhook_url = f"{st.session_state.algolab.config.api_hostname}/webhook"
         st.code(webhook_url, language="text")
         
-        # Alert/Sinyal JSON örneği
-        st.info("📝 **Alert Mesaj Formatı (JSON)**")
-        example_json = {
-            "symbol": "GARAN",
-            "side": "BUY",  # veya "SELL"
-            "quantity": 100,
-            "price": 20.50,  # MARKET emirlerde bu alan opsiyonel
-            "order_type": "LIMIT",  # veya "MARKET"
-            "key": "your-secret-key"  # Güvenlik için özel anahtar
-        }
-        st.code(json.dumps(example_json, indent=2), language="json")
-        
-        # Webhook kurulum adımları
-        st.info("🔧 **Kurulum Adımları**")
-        st.markdown("""
-        1. TradingView'da bir alert oluşturun
-        2. "Webhook URL" alanına yukarıdaki URL'i yapıştırın
-        3. "Message" alanına yukarıdaki JSON formatında bir mesaj yazın
-        4. Alert koşullarınızı belirleyin ve kaydedin
-        
-        **Not:** Webhook mesajlarının güvenliği için:
-        - Özel anahtarınızı kimseyle paylaşmayın
-        - Her zaman HTTPS kullanın
-        - IP kısıtlaması uygulayın
-        """)
-        
-        # Örnek TradingView Pine Script
-        st.info("📊 **Örnek Pine Script**")
-        pine_script = '''
+        # Örnek Pine Script
+        st.subheader("Örnek Pine Script")
+        example_script = '''
 // TradingView Pine Script v5
-strategy("My Trading Bot", overlay=true)
+strategy("AlgoLab Trading Bot", overlay=true)
 
 // Örnek strateji sinyalleri
-longCondition = crossover(sma(close, 14), sma(close, 28))
-shortCondition = crossunder(sma(close, 14), sma(close, 28))
+longCondition = ta.crossover(ta.sma(close, 14), ta.sma(close, 28))
+shortCondition = ta.crossunder(ta.sma(close, 14), ta.sma(close, 28))
 
+// Webhook alert mesajları
 if (longCondition)
-    strategy.entry("Long", strategy.long)
-    alert("{'symbol': '{{ticker}}', 'side': 'BUY', 'quantity': 100, 'order_type': 'MARKET'}", alert.freq_once_per_bar)
+    alert("{\\"symbol\\": \\"{{ticker}}\\", \\"side\\": \\"BUY\\", \\"quantity\\": 1, \\"price\\": {{close}}, \\"orderType\\": \\"LIMIT\\"}", alert.freq_once_per_bar)
 
 if (shortCondition)
-    strategy.entry("Short", strategy.short)
-    alert("{'symbol': '{{ticker}}', 'side': 'SELL', 'quantity': 100, 'order_type': 'MARKET'}", alert.freq_once_per_bar)
-        '''
-        st.code(pine_script, language="pine")
-    
+    alert("{\\"symbol\\": \\"{{ticker}}\\", \\"side\\": \\"SELL\\", \\"quantity\\": 1, \\"price\\": {{close}}, \\"orderType\\": \\"LIMIT\\"}", alert.freq_once_per_bar)
+'''
+        st.code(example_script, language="pine")
+        
+        # Webhook kurulum talimatları
+        st.subheader("Webhook Kurulumu")
+        st.markdown("""
+        1. TradingView'da bir alert oluşturun
+        2. Alert koşulunu belirleyin
+        3. "Webhook URL" alanına yukarıdaki URL'i yapıştırın
+        4. "Message" alanına Pine Script'teki gibi JSON formatında mesaj yazın
+        5. Alert'i kaydedin
+        
+        Not: Webhook mesajı aşağıdaki formatta olmalıdır:
+        ```json
+        {
+            "symbol": "GARAN",
+            "side": "BUY",
+            "quantity": 1,
+            "price": 20.50,
+            "orderType": "LIMIT"
+        }
+        """
+        )
+        
     # Çıkış yap butonu
     if st.sidebar.button("Çıkış Yap"):
         st.session_state.logged_in = False
