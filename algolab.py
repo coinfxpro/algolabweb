@@ -195,7 +195,7 @@ class Algolab:
             print(f"Failed to get equity info: {str(e)}")
             raise
 
-    def submit_order(self, symbol, direction, pricetype, price, lot, sms, email, subAccount):
+    def submit_order(self, **kwargs):
         """
         Emir gönderir
         :String symbol: Sembol Kodu
@@ -208,10 +208,22 @@ class Algolab:
         :String subAccount: Alt Hesap Numarasi "Boş gönderilebilir. Boş gönderilir ise Aktif Hesap Bilgilerini getirir."
         """
         try:
+            # Required fields
+            symbol = kwargs.get('symbol')
+            direction = kwargs.get('direction')
+            pricetype = kwargs.get('pricetype')
+            price = kwargs.get('price')
+            lot = kwargs.get('lot')
+            
+            # Optional fields with defaults
+            sms = kwargs.get('sms', False)
+            email = kwargs.get('email', False)
+            subAccount = kwargs.get('subAccount', '')
+            
             payload = {
-                "symbol": symbol.upper(),
+                "symbol": symbol.upper() if symbol else '',
                 "direction": direction,
-                "pricetype": pricetype.lower(),
+                "pricetype": pricetype.lower() if pricetype else '',
                 "price": str(price),
                 "lot": str(lot),
                 "sms": sms,
