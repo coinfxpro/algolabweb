@@ -189,8 +189,16 @@ elif st.session_state.logged_in and not st.session_state.sms_pending:
                 
             with col2:
                 price = st.number_input("Fiyat", min_value=0.01, step=0.01)
-                order_type = st.selectbox("Emir Tipi", ["LIMIT", "MARKET"])
+                order_type = st.selectbox("Emir Tipi", ["limit", "piyasa"])
                 side = st.selectbox("İşlem Yönü", ["ALIŞ", "SATIŞ"])
+                
+            # Alt hesap ve bildirim seçenekleri
+            col3, col4 = st.columns(2)
+            with col3:
+                subaccount = st.text_input("Alt Hesap No (Opsiyonel)", value="")
+            with col4:
+                sms = st.checkbox("SMS Bildirim", value=False)
+                email = st.checkbox("Email Bildirim", value=False)
             
             submit_order = st.form_submit_button("Emir Gönder")
             
@@ -206,10 +214,13 @@ elif st.session_state.logged_in and not st.session_state.sms_pending:
                     
                     order_data = {
                         "symbol": symbol.upper(),
-                        "quantity": quantity,
-                        "price": price if order_type == "LIMIT" else 0,
-                        "orderType": order_type,
-                        "side": side_map[side]
+                        "direction": side_map[side],
+                        "pricetype": order_type,
+                        "price": str(price),
+                        "lot": str(quantity),
+                        "sms": sms,
+                        "email": email,
+                        "subAccount": subaccount
                     }
                     
                     response = st.session_state.algolab.post(
@@ -225,6 +236,7 @@ elif st.session_state.logged_in and not st.session_state.sms_pending:
                             st.error(f"Emir gönderilemedi: {data.get('message', 'Bilinmeyen hata')}")
                     else:
                         st.error(f"Emir gönderilemedi. HTTP Status: {response.status_code}")
+                        st.error(f"Hata detayı: {response.text}")
                         
                 except Exception as e:
                     st.error(f"Emir gönderme hatası: {str(e)}")
