@@ -121,25 +121,14 @@ class Algolab:
         Login işlemi
         """
         try:
-            # Login için payload hazırla
-            username_enc = self.encrypt(self.username)
-            password_enc = self.encrypt(self.password)
-            
-            payload = {
-                "username": username_enc,
-                "password": password_enc
-            }
-            
-            print("\n=== LOGIN REQUEST ===")
-            print(f"Raw username: {self.username}")
-            print(f"Raw password: {'*' * len(self.password)}")
-            print(f"Encrypted username: {username_enc}")
-            print(f"Encrypted password: {password_enc}")
-            
-            response = self.post(self.config.URL_LOGIN_USER, payload=payload, login=False)
-            
-            print("\n=== LOGIN RESPONSE ===")
-            print(f"Response: {json.dumps(response, indent=2)}")
+            response = self.post(
+                endpoint=self.config.URL_LOGIN,
+                payload={
+                    "username": self.encrypt(self.username),
+                    "password": self.encrypt(self.password)
+                },
+                login=False
+            )
             
             if response.get('success'):
                 self.token = response.get('content', {}).get('token', '')
@@ -151,16 +140,19 @@ class Algolab:
             print(f"Login error: {str(e)}")
             raise
 
-    def login_control(self):
+    def login_control(self, sms_code):
         """
-        Login kontrolü
+        SMS doğrulaması
         """
         try:
-            payload = {
-                "token": self.token
-            }
-            
-            response = self.post(self.config.URL_LOGIN_CONTROL, payload=payload, login=True)
+            response = self.post(
+                endpoint=self.config.URL_LOGIN_CONTROL,
+                payload={
+                    "token": self.token,
+                    "password": sms_code
+                },
+                login=True
+            )
             
             if response.get('success'):
                 self.hash = response.get('content', {}).get('hash', '')

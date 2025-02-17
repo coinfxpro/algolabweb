@@ -90,9 +90,9 @@ def handle_sms():
     try:
         wait_for_api()
         # SMS doğrulama
-        if st.session_state.sms_pending:
+        if st.session_state.sms_pending and st.session_state.sms_code:
             try:
-                response = st.session_state.algolab.login_control()
+                response = st.session_state.algolab.login_control(st.session_state.sms_code)
                 if response.get('success'):
                     st.session_state.logged_in = True
                     st.session_state.sms_pending = False
