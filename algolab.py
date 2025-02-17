@@ -94,11 +94,28 @@ class Algolab:
             print(f"Response Headers: {dict(response.headers)}")
             print(f"Response Text: {response.text}")
             
-            return response
+            # Try to parse response as JSON
+            try:
+                response_data = response.json()
+            except:
+                response_data = {
+                    "success": False,
+                    "message": response.text,
+                    "content": None
+                }
+            
+            # Add status code to response data
+            response_data["status_code"] = response.status_code
+            return response_data
             
         except Exception as e:
             print(f"POST request error: {str(e)}")
-            raise
+            return {
+                "success": False,
+                "message": str(e),
+                "content": None,
+                "status_code": 500
+            }
 
     def login(self):
         """
@@ -116,7 +133,7 @@ class Algolab:
             )
             
             if response.status_code == 200:
-                data = response.json()
+                data = response
                 if data.get('success'):
                     self.token = data.get('content', {}).get('token', '')
                     return data
@@ -141,7 +158,7 @@ class Algolab:
             response = self.post(self.config.URL_LOGIN_CONTROL, payload=payload, login=True)
             
             if response.status_code == 200:
-                data = response.json()
+                data = response
                 if data.get("success"):
                     self.hash = data["content"]["hash"]
                     return data
@@ -164,7 +181,7 @@ class Algolab:
             )
             
             if response.status_code == 200:
-                return response.json()
+                return response
             else:
                 raise Exception(f"Failed to get equity info: {response.text}")
         except Exception as e:
@@ -179,7 +196,7 @@ class Algolab:
             )
             
             if response.status_code == 200:
-                return response.json()
+                return response
             else:
                 raise Exception(f"Failed to get positions: {response.text}")
         except Exception as e:
@@ -194,7 +211,7 @@ class Algolab:
             response = self.post(self.config.URL_GET_INSTANT_POSITION, payload=payload, login=True)
             
             if response.status_code == 200:
-                data = response.json()
+                data = response
                 if data.get('success'):
                     return data
                 else:
@@ -215,7 +232,7 @@ class Algolab:
             response = self.post(self.config.URL_GET_EQUITY_INFO, payload=payload, login=True)
             
             if response.status_code == 200:
-                data = response.json()
+                data = response
                 if data.get('success'):
                     return data
                 else:
@@ -253,7 +270,7 @@ class Algolab:
             response = self.post(self.config.URL_SEND_ORDER, payload=payload, login=True)
             
             if response.status_code == 200:
-                data = response.json()
+                data = response
                 if data.get('success'):
                     return data
                 else:
@@ -274,7 +291,7 @@ class Algolab:
             )
             
             if response.status_code == 200:
-                return response.json()
+                return response
             else:
                 raise Exception(f"Failed to refresh session: {response.text}")
         except Exception as e:
@@ -292,7 +309,7 @@ class Algolab:
             )
             
             if response.status_code == 200:
-                return response.json()
+                return response
             else:
                 raise Exception(f"Failed to get today's transactions: {response.text}")
         except Exception as e:

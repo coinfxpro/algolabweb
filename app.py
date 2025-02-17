@@ -228,15 +228,14 @@ elif st.session_state.logged_in and not st.session_state.sms_pending:
                         payload=order_data
                     )
                     
-                    if response.status_code == 200:
-                        data = response.json()
-                        if data.get('success'):
-                            st.success(f"Emir başarıyla gönderildi! Emir No: {data.get('content', {}).get('orderId', 'N/A')}")
+                    if response.get('status_code') == 200:
+                        if response.get('success'):
+                            st.success(f"Emir başarıyla gönderildi! Emir No: {response.get('content', {}).get('orderId', 'N/A')}")
                         else:
-                            st.error(f"Emir gönderilemedi: {data.get('message', 'Bilinmeyen hata')}")
+                            st.error(f"Emir gönderilemedi: {response.get('message', 'Bilinmeyen hata')}")
                     else:
-                        st.error(f"Emir gönderilemedi. HTTP Status: {response.status_code}")
-                        st.error(f"Hata detayı: {response.text}")
+                        st.error(f"Emir gönderilemedi. HTTP Status: {response.get('status_code')}")
+                        st.error(f"Hata detayı: {response.get('message', 'Bilinmeyen hata')}")
                         
                 except Exception as e:
                     st.error(f"Emir gönderme hatası: {str(e)}")
