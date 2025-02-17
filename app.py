@@ -213,19 +213,20 @@ elif st.session_state.logged_in and not st.session_state.sms_pending:
                         st.stop()
                         
                     wait_for_api()
-                    # API'ye gönderilecek değerleri hazırla
-                    side_map = {"ALIŞ": "BUY", "SATIŞ": "SELL"}
+                    # Emir verilerini hazırla
+                    order_data = {
+                        'symbol': symbol,
+                        'side': {"ALIŞ": "BUY", "SATIŞ": "SELL"}[side],
+                        'order_type': order_type,
+                        'price': price,
+                        'quantity': quantity,
+                        'sub_account': subaccount,
+                        'sms': sms,
+                        'email': email
+                    }
                     
-                    response = st.session_state.algolab.submit_order(
-                        symbol=symbol,
-                        side=side_map[side],
-                        order_type=order_type,
-                        price=price,
-                        quantity=quantity,
-                        sub_account=subaccount,
-                        sms=sms,
-                        email=email
-                    )
+                    # Emri gönder
+                    response = st.session_state.algolab.submit_order(order_data)
                     
                     if response.get('status_code') == 200:
                         if response.get('success'):

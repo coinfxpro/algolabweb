@@ -195,29 +195,33 @@ class Algolab:
             print(f"Failed to get equity info: {str(e)}")
             raise
 
-    def submit_order(self, symbol, side, order_type, price, quantity, sub_account="", sms=False, email=False):
+    def submit_order(self, order_data):
         """
         Emir gönderir
-        :param symbol: Sembol Kodu
-        :param side: İşlem Yönü: BUY / SELL (Aliş/Satiş)
-        :param order_type: Emir Tipi: piyasa/limit
-        :param price: Emir tipi limit ise fiyat girilmelidir. (Örn. 1.98 şeklinde girilmelidir.)
-        :param quantity: Emir Adeti
-        :param sub_account: Alt Hesap Numarasi
-        :param sms: Sms Gönderim
-        :param email: Email Gönderim
+        order_data dictionary'si şu alanları içermelidir:
+        - symbol: Sembol Kodu
+        - side: İşlem Yönü (BUY/SELL)
+        - order_type: Emir Tipi (limit/piyasa)
+        - price: Fiyat
+        - quantity: Miktar
+        Opsiyonel alanlar:
+        - sub_account: Alt Hesap No
+        - sms: SMS Bildirimi (True/False)
+        - email: Email Bildirimi (True/False)
         """
         try:
+            # API'nin beklediği formata dönüştür
             payload = {
-                "symbol": symbol.upper(),
-                "direction": side,
-                "pricetype": order_type.lower(),
-                "price": str(price),
-                "lot": str(quantity),
-                "sms": sms,
-                "email": email,
-                "subAccount": sub_account
+                "symbol": order_data.get('symbol', '').upper(),
+                "direction": order_data.get('side', ''),
+                "pricetype": order_data.get('order_type', '').lower(),
+                "price": str(order_data.get('price', '')),
+                "lot": str(order_data.get('quantity', '')),
+                "sms": order_data.get('sms', False),
+                "email": order_data.get('email', False),
+                "subAccount": order_data.get('sub_account', '')
             }
+            
             response = self.post(self.config.URL_SEND_ORDER, payload=payload, login=True)
             return response
         except Exception as e:
