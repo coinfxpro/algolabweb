@@ -171,146 +171,70 @@ class Algolab:
             print(f"Login control error: {str(e)}")
             raise
 
-    def get_equity_info(self, symbol):
-        try:
-            payload = {'symbol': symbol}
-            response = self.post(
-                endpoint=self.config.URL_GET_EQUITY_INFO,
-                payload=payload,
-                login=True
-            )
-            
-            if response.status_code == 200:
-                return response
-            else:
-                raise Exception(f"Failed to get equity info: {response.text}")
-        except Exception as e:
-            raise Exception(f"Get equity info error: {str(e)}")
-
-    def get_positions(self):
-        try:
-            response = self.post(
-                endpoint=self.config.URL_GET_INSTANT_POSITION,
-                payload={},
-                login=True
-            )
-            
-            if response.status_code == 200:
-                return response
-            else:
-                raise Exception(f"Failed to get positions: {response.text}")
-        except Exception as e:
-            raise Exception(f"Get positions error: {str(e)}")
-
-    def GetInstantPosition(self, sub_account=""):
+    def get_instant_position(self, subaccount=""):
         """
-        Yatırım Hesabınıza bağlı alt hesapları (101, 102 v.b.) ve limitlerini görüntüleyebilirsiniz.
+        Anlık pozisyon bilgilerini çeker
         """
         try:
-            payload = {'Subaccount': sub_account}
+            payload = {'Subaccount': subaccount}
             response = self.post(self.config.URL_GET_INSTANT_POSITION, payload=payload, login=True)
-            
-            if response.status_code == 200:
-                data = response
-                if data.get('success'):
-                    return data
-                else:
-                    raise Exception(f"GetInstantPosition failed: {data.get('message', 'Unknown error')}")
-            else:
-                raise Exception(f"GetInstantPosition request failed with status {response.status_code}: {response.text}")
-                
+            return response
         except Exception as e:
-            print(f"GetInstantPosition error: {str(e)}")
+            print(f"Failed to get positions: {str(e)}")
             raise
 
-    def GetEquityInfo(self, symbol):
+    def get_equity_info(self, symbol):
         """
-        Sembolle ilgili tavan taban yüksek düşük anlık fiyat gibi bilgileri çekebilirsiniz.
+        Sembol bilgilerini çeker
         """
         try:
             payload = {'symbol': symbol}
             response = self.post(self.config.URL_GET_EQUITY_INFO, payload=payload, login=True)
-            
-            if response.status_code == 200:
-                data = response
-                if data.get('success'):
-                    return data
-                else:
-                    raise Exception(f"GetEquityInfo failed: {data.get('message', 'Unknown error')}")
-            else:
-                raise Exception(f"GetEquityInfo request failed with status {response.status_code}: {response.text}")
-                
+            return response
         except Exception as e:
-            print(f"GetEquityInfo error: {str(e)}")
+            print(f"Failed to get equity info: {str(e)}")
             raise
 
-    def submit_order(self, symbol, quantity, side, price=None, order_type="LIMIT"):
+    def submit_order(self, symbol, quantity, price, order_type, side, subaccount="", sms=False, email=False):
         """
-        Emir gönderme işlemi
-        Args:
-            symbol (str): İşlem yapılacak sembol (örn: GARAN)
-            quantity (int): İşlem miktarı
-            side (str): İşlem yönü (BUY veya SELL)
-            price (float, optional): Limit fiyat. MARKET emirlerde None olabilir
-            order_type (str): Emir tipi (LIMIT veya MARKET)
-        Returns:
-            dict: API yanıtı
+        Emir gönderir
         """
         try:
             payload = {
-                "symbol": symbol,
-                "quantity": quantity,
-                "side": side,
-                "orderType": order_type
+                "symbol": symbol.upper(),
+                "direction": side,
+                "pricetype": order_type.lower(),
+                "price": str(price),
+                "lot": str(quantity),
+                "sms": sms,
+                "email": email,
+                "subAccount": subaccount
             }
-            
-            if order_type == "LIMIT" and price is not None:
-                payload["price"] = price
-                
             response = self.post(self.config.URL_SEND_ORDER, payload=payload, login=True)
-            
-            if response.status_code == 200:
-                data = response
-                if data.get('success'):
-                    return data
-                else:
-                    raise Exception(f"Submit order failed: {data.get('message', 'Unknown error')}")
-            else:
-                raise Exception(f"Submit order request failed with status {response.status_code}: {response.text}")
-                
+            return response
         except Exception as e:
-            print(f"Submit order error: {str(e)}")
+            print(f"Failed to submit order: {str(e)}")
             raise
 
     def session_refresh(self):
+        """
+        Oturumu yeniler
+        """
         try:
-            response = self.post(
-                endpoint=self.config.URL_SESSION_REFRESH,
-                payload={},
-                login=True
-            )
-            
-            if response.status_code == 200:
-                return response
-            else:
-                raise Exception(f"Failed to refresh session: {response.text}")
+            response = self.post(self.config.URL_SESSION_REFRESH, payload={}, login=True)
+            return response
         except Exception as e:
-            raise Exception(f"Session refresh error: {str(e)}")
+            print(f"Failed to refresh session: {str(e)}")
+            raise
 
-    def get_todays_transaction(self):  # Metod ismini config ile uyumlu hale getirdik
+    def get_todays_transaction(self, subaccount=""):
         """
-        Günlük işlemleri ve bekleyen emirleri getirir
+        Günlük işlemleri çeker
         """
         try:
-            response = self.post(
-                endpoint=self.config.URL_GET_TODAYS_TRANSACTION,  # Config'deki isimle aynı
-                payload={},
-                login=True
-            )
-            
-            if response.status_code == 200:
-                return response
-            else:
-                raise Exception(f"Failed to get today's transactions: {response.text}")
+            payload = {'Subaccount': subaccount}
+            response = self.post(self.config.URL_GET_TODAYS_TRANSACTION, payload=payload, login=True)
+            return response
         except Exception as e:
-            raise Exception(f"Get today's transactions error: {str(e)}")
+            print(f"Failed to get today's transactions: {str(e)}")
+            raise

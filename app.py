@@ -145,7 +145,11 @@ elif st.session_state.logged_in and not st.session_state.sms_pending:
             st.rerun()
     with col3:
         if st.button("🚪 Çıkış"):
-            st.session_state.clear()
+            st.session_state.logged_in = False
+            st.session_state.sms_pending = False
+            st.session_state.algolab = None
+            st.session_state.sms_time = None
+            st.session_state.last_api_call = None
             st.rerun()
             
     # Tab'lar oluştur
@@ -212,20 +216,15 @@ elif st.session_state.logged_in and not st.session_state.sms_pending:
                     # API'ye gönderilecek değerleri hazırla
                     side_map = {"ALIŞ": "BUY", "SATIŞ": "SELL"}
                     
-                    order_data = {
-                        "symbol": symbol.upper(),
-                        "direction": side_map[side],
-                        "pricetype": order_type,
-                        "price": str(price),
-                        "lot": str(quantity),
-                        "sms": sms,
-                        "email": email,
-                        "subAccount": subaccount
-                    }
-                    
-                    response = st.session_state.algolab.post(
-                        endpoint=st.session_state.algolab.config.URL_SEND_ORDER,
-                        payload=order_data
+                    response = st.session_state.algolab.submit_order(
+                        symbol=symbol,
+                        quantity=quantity,
+                        price=price,
+                        order_type=order_type,
+                        side=side_map[side],
+                        subaccount=subaccount,
+                        sms=sms,
+                        email=email
                     )
                     
                     if response.get('status_code') == 200:
