@@ -195,7 +195,7 @@ class Algolab:
             print(f"Failed to get equity info: {str(e)}")
             raise
 
-    def submit_order(self, symbol, side, order_type, price, quantity, subaccount="", sms=False, email=False):
+    def submit_order(self, symbol, side, order_type, price, quantity, sub_account="", sms=False, email=False):
         """
         Emir gönderir
         :param symbol: Sembol Kodu
@@ -203,7 +203,7 @@ class Algolab:
         :param order_type: Emir Tipi: piyasa/limit
         :param price: Emir tipi limit ise fiyat girilmelidir. (Örn. 1.98 şeklinde girilmelidir.)
         :param quantity: Emir Adeti
-        :param subaccount: Alt Hesap Numarasi
+        :param sub_account: Alt Hesap Numarasi
         :param sms: Sms Gönderim
         :param email: Email Gönderim
         """
@@ -216,7 +216,7 @@ class Algolab:
                 "lot": str(quantity),
                 "sms": sms,
                 "email": email,
-                "subAccount": subaccount
+                "subAccount": sub_account
             }
             response = self.post(self.config.URL_SEND_ORDER, payload=payload, login=True)
             return response
