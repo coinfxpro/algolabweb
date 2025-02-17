@@ -10,38 +10,30 @@ from Crypto.Util.Padding import pad
 from config import AlgolabConfig
 
 class Algolab:
-    def __init__(self, api_key, username, password):
+    def __init__(self, username, password):
         """
-        API'ye bağlanmak için gerekli bilgileri alır
+        Algolab API'si için gerekli parametreler
+        :param username: Kullanıcı adı
+        :param password: Şifre
         """
-        try:
-            self.api_code = api_key.split("-")[1]
-        except:
-            self.api_code = api_key
-            
-        self.api_key = "API-" + self.api_code
+        self.config = AlgolabConfig()
+        self.api_key = self.config.api_key
         self.username = username
         self.password = password
-        
-        self.config = AlgolabConfig()
-        self.token = ""
-        self.hash = ""
-        
-        self.headers = {"APIKEY": self.api_key}
+        self.token = None
+        self.hash = None
 
     def encrypt(self, text):
         """
-        Orijinal API'nin şifreleme yöntemi
+        Kullanıcı adı ve şifre için şifreleme
         """
         try:
-            iv = b'\0' * 16
-            key = base64.b64decode(self.api_code.encode('utf-8'))
-            cipher = AES.new(key, AES.MODE_CBC, iv)
-            bytes_text = text.encode()
-            padded_bytes = pad(bytes_text, 16)
-            encrypted = cipher.encrypt(padded_bytes)
-            result = base64.b64encode(encrypted).decode("utf-8")
-            return result
+            key = self.api_key.encode('utf-8')
+            text = str(text).encode('utf-8')
+            cipher = AES.new(key, AES.MODE_ECB)
+            padded = pad(text, AES.block_size)
+            encrypted = cipher.encrypt(padded)
+            return base64.b64encode(encrypted).decode('utf-8')
         except Exception as e:
             print(f"Encryption error: {str(e)}")
             raise

@@ -61,7 +61,7 @@ def handle_login():
         
         wait_for_api()
         # Login işlemi
-        algolab = Algolab(username, password)
+        algolab = Algolab(username=username, password=password)
         
         try:
             # İlk login
