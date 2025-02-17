@@ -30,35 +30,42 @@ class Algolab:
         try:
             # API key'i doğru formata getir
             api_code = self.api_key.split("-")[1]  # "API-XXXX" formatından "XXXX" kısmını al
-            key = base64.b64decode(api_code)  # Base64 decode
             
-            # Text'i şifrele
-            text = str(text).encode('utf-8')
-            cipher = AES.new(key, AES.MODE_ECB)
-            padded = pad(text, AES.block_size)
-            encrypted = cipher.encrypt(padded)
-            return base64.b64encode(encrypted).decode('utf-8')
+            # Şifreleme
+            iv = b'\0' * 16
+            key = base64.b64decode(api_code.encode('utf-8'))
+            cipher = AES.new(key, AES.MODE_CBC, iv)
+            bytes_text = text.encode()
+            padded_bytes = pad(bytes_text, 16)
+            encrypted = cipher.encrypt(padded_bytes)
+            return base64.b64encode(encrypted).decode("utf-8")
         except Exception as e:
             print(f"Encryption error: {str(e)}")
             raise
 
     def make_checker(self, endpoint, payload):
         """
-        API istekleri için Checker header'ı oluşturur
+        API isteği için checker oluşturma
         """
-        if len(payload) > 0:
-            body = json.dumps(payload).replace(' ', '')
-        else:
-            body = ""
-        data = self.api_key + self.config.api_hostname + endpoint + body
-        checker = hashlib.sha256(data.encode('utf-8')).hexdigest()
-        return checker
+        try:
+            if len(payload) > 0:
+                body = json.dumps(payload).replace(' ', '')
+            else:
+                body = ""
+            data = self.api_key + self.config.api_hostname + endpoint + body
+            checker = hashlib.sha256(data.encode('utf-8')).hexdigest()
+            return checker
+        except Exception as e:
+            print(f"Checker error: {str(e)}")
+            raise
 
     def post(self, endpoint, payload=None, login=True):
         """
         API'ye POST isteği gönderme
         """
         try:
+            url = self.config.api_url
+            
             if not login:
                 headers = {"APIKEY": self.api_key}
             else:
@@ -66,15 +73,11 @@ class Algolab:
                 headers = {
                     "APIKEY": self.api_key,
                     "Checker": checker,
-                    "Authorization": f"Bearer {self.hash}"  # Bearer token ekle
+                    "Authorization": self.hash
                 }
                 
-            url = self.config.api_url
-            
             print("\n=== API REQUEST DETAILS ===")
-            print(f"Base URL: {url}")
-            print(f"Endpoint: {endpoint}")
-            print(f"Final URL: {url}{endpoint}")
+            print(f"URL: {url}{endpoint}")
             print(f"Headers: {json.dumps(headers, indent=2)}")
             print(f"Payload: {json.dumps(payload, indent=2) if payload else None}")
             
@@ -105,7 +108,7 @@ class Algolab:
             
             # Check for error status codes
             if response.status_code != 200:
-                raise Exception(f"Submit order request failed with status {response.status_code}: {response.text}")
+                raise Exception(f"Request failed with status {response.status_code}: {response.text}")
                 
             return response_data
             
@@ -132,13 +135,8 @@ class Algolab:
             print(f"Raw password: {'*' * len(self.password)}")
             print(f"Encrypted username: {username_enc}")
             print(f"Encrypted password: {password_enc}")
-            print(f"API URL: {self.config.api_url}")
-            print(f"Login endpoint: {self.config.URL_LOGIN}")
-            print(f"Full URL: {self.config.api_url}{self.config.URL_LOGIN}")
-            print(f"Headers: {{'APIKEY': {self.api_key}}}")
-            print(f"Payload: {json.dumps(payload, indent=2)}")
             
-            response = self.post(self.config.URL_LOGIN, payload=payload, login=False)
+            response = self.post(self.config.URL_LOGIN_USER, payload=payload, login=False)
             
             print("\n=== LOGIN RESPONSE ===")
             print(f"Response: {json.dumps(response, indent=2)}")
@@ -161,6 +159,7 @@ class Algolab:
             payload = {
                 "token": self.token
             }
+            
             response = self.post(self.config.URL_LOGIN_CONTROL, payload=payload, login=True)
             
             if response.get('success'):
