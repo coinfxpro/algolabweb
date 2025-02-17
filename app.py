@@ -218,13 +218,13 @@ elif st.session_state.logged_in and not st.session_state.sms_pending:
                     
                     response = st.session_state.algolab.submit_order(
                         symbol=symbol,
-                        quantity=quantity,
+                        direction=side_map[side],
+                        pricetype=order_type,
                         price=price,
-                        order_type=order_type,
-                        side=side_map[side],
-                        sub_account=subaccount,
+                        lot=quantity,
                         sms=sms,
-                        email=email
+                        email=email,
+                        subAccount=subaccount
                     )
                     
                     if response.get('status_code') == 200:
