@@ -195,40 +195,28 @@ class Algolab:
             print(f"Failed to get equity info: {str(e)}")
             raise
 
-    def submit_order(self, **kwargs):
+    def submit_order(self, symbol, side, order_type, price, quantity, subaccount="", sms=False, email=False):
         """
         Emir gönderir
-        :String symbol: Sembol Kodu
-        :String direction: İşlem Yönü: BUY / SELL (Aliş/Satiş)
-        :String pricetype: Emir Tipi: piyasa/limit
-        :String price: Emir tipi limit ise fiyat girilmelidir. (Örn. 1.98 şeklinde girilmelidir.)
-        :String lot: Emir Adeti
-        :Bool sms: Sms Gönderim
-        :Bool email: Email Gönderim
-        :String subAccount: Alt Hesap Numarasi "Boş gönderilebilir. Boş gönderilir ise Aktif Hesap Bilgilerini getirir."
+        :param symbol: Sembol Kodu
+        :param side: İşlem Yönü: BUY / SELL (Aliş/Satiş)
+        :param order_type: Emir Tipi: piyasa/limit
+        :param price: Emir tipi limit ise fiyat girilmelidir. (Örn. 1.98 şeklinde girilmelidir.)
+        :param quantity: Emir Adeti
+        :param subaccount: Alt Hesap Numarasi
+        :param sms: Sms Gönderim
+        :param email: Email Gönderim
         """
         try:
-            # Required fields
-            symbol = kwargs.get('symbol')
-            direction = kwargs.get('direction')
-            pricetype = kwargs.get('pricetype')
-            price = kwargs.get('price')
-            lot = kwargs.get('lot')
-            
-            # Optional fields with defaults
-            sms = kwargs.get('sms', False)
-            email = kwargs.get('email', False)
-            subAccount = kwargs.get('subAccount', '')
-            
             payload = {
-                "symbol": symbol.upper() if symbol else '',
-                "direction": direction,
-                "pricetype": pricetype.lower() if pricetype else '',
+                "symbol": symbol.upper(),
+                "direction": side,
+                "pricetype": order_type.lower(),
                 "price": str(price),
-                "lot": str(lot),
+                "lot": str(quantity),
                 "sms": sms,
                 "email": email,
-                "subAccount": subAccount
+                "subAccount": subaccount
             }
             response = self.post(self.config.URL_SEND_ORDER, payload=payload, login=True)
             return response
