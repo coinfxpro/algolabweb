@@ -60,18 +60,22 @@ def handle_login():
         print(f"Username: {username}")
         
         wait_for_api()
-        algolab = Algolab(api_key, username, password)
+        # Login işlemi
+        algolab = Algolab(username, password)
         
         try:
+            # İlk login
             response = algolab.login()
-            st.session_state.algolab = algolab
-            st.session_state.sms_pending = True
-            st.session_state.sms_time = datetime.now()
-            st.success("Giriş başarılı! SMS kodu bekleniyor...")
-            st.rerun()
+            if response.get('success'):
+                st.session_state.algolab = algolab
+                st.session_state.sms_pending = True
+                st.session_state.sms_time = time.time()
+                st.success("Giriş başarılı! SMS kodu bekleniyor...")
+                st.rerun()
+            else:
+                st.error(f"Giriş başarısız: {response.get('message', 'Bilinmeyen hata')}")
         except Exception as e:
-            error_msg = str(e)
-            st.error(f"Giriş hatası: {error_msg}")
+            st.error(f"Giriş hatası: {str(e)}")
             st.session_state.logged_in = False
             st.session_state.sms_pending = False
             st.session_state.sms_time = None
@@ -85,12 +89,20 @@ def handle_login():
 def handle_sms():
     try:
         wait_for_api()
-        if st.session_state.algolab.login_control(st.session_state.sms_code):
-            st.session_state.logged_in = True
-            st.session_state.sms_pending = False
-            st.session_state.sms_time = None
-            st.success("Giriş başarılı!")
-            st.rerun()
+        # SMS doğrulama
+        if st.session_state.sms_pending:
+            try:
+                response = st.session_state.algolab.login_control()
+                if response.get('success'):
+                    st.session_state.logged_in = True
+                    st.session_state.sms_pending = False
+                    st.session_state.sms_time = None
+                    st.success("Giriş başarılı!")
+                    st.rerun()
+                else:
+                    st.error(f"SMS doğrulama başarısız: {response.get('message', 'Bilinmeyen hata')}")
+            except Exception as e:
+                st.error(f"SMS doğrulama hatası: {str(e)}")
     except Exception as e:
         st.error(f"SMS doğrulama hatası: {str(e)}")
 
@@ -110,7 +122,7 @@ if not st.session_state.logged_in:
     else:
         # SMS kodunun geçerlilik süresini kontrol et (60 saniye)
         if st.session_state.sms_time:
-            remaining_time = 60 - (datetime.now() - st.session_state.sms_time).seconds
+            remaining_time = 60 - (time.time() - st.session_state.sms_time)
             if remaining_time > 0:
                 st.warning(f"SMS kodunun geçerlilik süresi: {remaining_time} saniye")
                 

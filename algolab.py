@@ -119,53 +119,41 @@ class Algolab:
 
     def login(self):
         """
-        API'ye login olma işlemi
+        Login işlemi
         """
         try:
-            u = self.encrypt(self.username)
-            p = self.encrypt(self.password)
-            payload = {"username": u, "password": p}
+            payload = {
+                "username": self.encrypt(self.username),
+                "password": self.encrypt(self.password)
+            }
             
-            response = self.post(
-                endpoint=self.config.URL_LOGIN_USER,
-                payload=payload,
-                login=False  # İlk login'de header'da sadece APIKEY olmalı
-            )
+            response = self.post(self.config.URL_LOGIN, payload=payload, login=False)
             
-            if response.status_code == 200:
-                data = response
-                if data.get('success'):
-                    self.token = data.get('content', {}).get('token', '')
-                    return data
-                else:
-                    raise Exception(f"Login failed: {data.get('message', 'Unknown error')}")
+            if response.get('success'):
+                self.token = response.get('content', {}).get('token', '')
+                return response
             else:
-                raise Exception(f"Login request failed with status {response.status_code}: {response.text}")
+                raise Exception(f"Login failed: {response.get('message', 'Unknown error')}")
                 
         except Exception as e:
             print(f"Login error: {str(e)}")
             raise
 
-    def login_control(self, sms_code):
+    def login_control(self):
         """
-        SMS doğrulaması için kullanılır
+        Login kontrolü
         """
         try:
-            token = self.encrypt(self.token)
-            password = self.encrypt(sms_code)
-            payload = {"token": token, "password": password}
-            
+            payload = {
+                "token": self.token
+            }
             response = self.post(self.config.URL_LOGIN_CONTROL, payload=payload, login=True)
             
-            if response.status_code == 200:
-                data = response
-                if data.get("success"):
-                    self.hash = data["content"]["hash"]
-                    return data
-                else:
-                    raise Exception(f"Login control failed: {data.get('message', 'Unknown error')}")
+            if response.get('success'):
+                self.hash = response.get('content', {}).get('hash', '')
+                return response
             else:
-                raise Exception(f"Login control request failed with status {response.status_code}: {response.text}")
+                raise Exception(f"Login control failed: {response.get('message', 'Unknown error')}")
                 
         except Exception as e:
             print(f"Login control error: {str(e)}")
