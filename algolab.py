@@ -118,12 +118,30 @@ class Algolab:
         Login işlemi
         """
         try:
+            # Login için payload hazırla
+            username_enc = self.encrypt(self.username)
+            password_enc = self.encrypt(self.password)
+            
             payload = {
-                "username": self.encrypt(self.username),
-                "password": self.encrypt(self.password)
+                "username": username_enc,
+                "password": password_enc
             }
             
+            print("\n=== LOGIN REQUEST ===")
+            print(f"Raw username: {self.username}")
+            print(f"Raw password: {'*' * len(self.password)}")
+            print(f"Encrypted username: {username_enc}")
+            print(f"Encrypted password: {password_enc}")
+            print(f"API URL: {self.config.api_url}")
+            print(f"Login endpoint: {self.config.URL_LOGIN}")
+            print(f"Full URL: {self.config.api_url}{self.config.URL_LOGIN}")
+            print(f"Headers: {{'APIKEY': {self.api_key}}}")
+            print(f"Payload: {json.dumps(payload, indent=2)}")
+            
             response = self.post(self.config.URL_LOGIN, payload=payload, login=False)
+            
+            print("\n=== LOGIN RESPONSE ===")
+            print(f"Response: {json.dumps(response, indent=2)}")
             
             if response.get('success'):
                 self.token = response.get('content', {}).get('token', '')
