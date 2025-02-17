@@ -28,7 +28,11 @@ class Algolab:
         Kullanıcı adı ve şifre için şifreleme
         """
         try:
-            key = self.api_key.encode('utf-8')
+            # API key'i doğru formata getir
+            api_code = self.api_key.split("-")[1]  # "API-XXXX" formatından "XXXX" kısmını al
+            key = base64.b64decode(api_code)  # Base64 decode
+            
+            # Text'i şifrele
             text = str(text).encode('utf-8')
             cipher = AES.new(key, AES.MODE_ECB)
             padded = pad(text, AES.block_size)
