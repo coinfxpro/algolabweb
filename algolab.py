@@ -70,7 +70,7 @@ class Algolab:
                 headers = {
                     "APIKEY": self.api_key,
                     "Checker": checker,
-                    "Authorization": self.hash
+                    "Authorization": f"Bearer {self.hash}"  # Bearer token ekle
                 }
                 
             url = self.config.api_url
@@ -106,16 +106,16 @@ class Algolab:
             
             # Add status code to response data
             response_data["status_code"] = response.status_code
+            
+            # Check for error status codes
+            if response.status_code != 200:
+                raise Exception(f"Submit order request failed with status {response.status_code}: {response.text}")
+                
             return response_data
             
         except Exception as e:
             print(f"POST request error: {str(e)}")
-            return {
-                "success": False,
-                "message": str(e),
-                "content": None,
-                "status_code": 500
-            }
+            raise
 
     def login(self):
         """
