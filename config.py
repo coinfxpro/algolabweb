@@ -11,7 +11,7 @@ class AlgolabConfig:
         self.api_key = "API-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
         
         # API Endpoints
-        self.URL_LOGIN_USER = "/api/LoginUser"
+        self.URL_LOGIN = "/api/LoginUser"  # Algolab'ın beklediği endpoint
         self.URL_LOGIN_CONTROL = "/api/LoginUserControl"
         self.URL_SEND_ORDER = "/api/SendOrder"
         self.URL_SESSION_REFRESH = "/api/SessionRefresh"
