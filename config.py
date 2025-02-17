@@ -2,23 +2,38 @@ import streamlit as st
 
 class AlgolabConfig:
     def __init__(self):
-        # API Endpoint'leri
-        self.api_url = "https://api.algolab.com.tr"
+        # URL configuration
+        self.hostname = "www.algolab.com.tr"
+        self.api_hostname = f"https://{self.hostname}"
+        self.api_url = self.api_hostname + "/api"  # /api (küçük harfle)
         
         # API Key
         self.api_key = "API-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
         
-        # API Endpoint'leri
-        self.URL_LOGIN = "/auth/login"
-        self.URL_LOGIN_CONTROL = "/auth/login/control"
-        self.URL_SEND_ORDER = "/order/send"
-        self.URL_CANCEL_ORDER = "/order/cancel"
-        self.URL_GET_ORDERS = "/order/list"
-        self.URL_GET_POSITIONS = "/position/list"
-        self.URL_GET_BALANCE = "/balance"
-        self.URL_GET_INSTRUMENTS = "/instrument/list"
-        self.URL_GET_QUOTES = "/quote/list"
-        self.URL_GET_TRADES = "/trade/list"
+        # API Endpoints
+        self.URL_LOGIN = "/api/LoginUser"
+        self.URL_LOGIN_CONTROL = "/api/LoginUserControl"
+        self.URL_SESSION_REFRESH = "/api/SessionRefresh"
+        self.URL_SEND_ORDER = "/api/SendOrder"
+        self.URL_MODIFY_ORDER = "/api/ModifyOrder"
+        self.URL_DELETE_ORDER = "/api/DeleteOrder"
+        self.URL_DELETE_ORDER_VIOP = "/api/DeleteOrderViop"
+        self.URL_GET_EQUITY_INFO = "/api/GetEquityInfo"
+        self.URL_GET_CANDLE_DATA = "/api/GetCandleData"
+        self.URL_GET_INSTANT_POSITION = "/api/InstantPosition"
+        self.URL_GET_VIOP_CUSTOMER_OVERALL = "/api/ViopCustomerOverall"
+        self.URL_GET_SUBACCOUNTS = "/api/GetSubAccounts"
+        self.URL_GET_TODAYS_TRANSACTION = "/api/TodaysTransaction"
+        self.URL_GET_VIOP_CUSTOMER_TRANSACTIONS = "/api/ViopCustomerTransactions"
+        self.URL_GET_EQUITY_ORDER_HISTORY = "/api/GetEquityOrderHistory"
+        self.URL_GET_VIOP_ORDER_HISTORY = "/api/GetViopOrderHistory"
+        self.URL_GET_ACCOUNT_EXTRE = "/api/AccountExtre"
+        self.URL_GET_CASH_FLOW = "/api/CashFlow"
+        self.URL_RISK_SIMULATION = "/api/RiskSimulation"
+        self.URL_VIOP_COLLATERAL_INFO = "/api/ViopCollateralInfo"
+
+        # Socket URL
+        self.socket_url = f"wss://{self.hostname}/api/ws"
 
     @property
     def api_key(self):
