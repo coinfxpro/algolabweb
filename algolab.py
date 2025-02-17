@@ -195,31 +195,28 @@ class Algolab:
             print(f"Failed to get equity info: {str(e)}")
             raise
 
-    def submit_order(self, order_data):
+    def submit_order(self, symbol, quantity, side, price=None, order_type="limit"):
         """
         Emir gönderir
-        order_data dictionary'si şu alanları içermelidir:
-        - symbol: Sembol Kodu
-        - side: İşlem Yönü (BUY/SELL)
-        - order_type: Emir Tipi (limit/piyasa)
-        - price: Fiyat
-        - quantity: Miktar
-        Opsiyonel alanlar:
-        - sub_account: Alt Hesap No
-        - sms: SMS Bildirimi (True/False)
-        - email: Email Bildirimi (True/False)
+        :param symbol: Sembol Kodu
+        :param quantity: İşlem Miktarı
+        :param side: İşlem Yönü (ALIŞ/SATIŞ)
+        :param price: Fiyat (LIMIT emirlerde zorunlu)
+        :param order_type: Emir Tipi (limit/piyasa)
         """
         try:
             # API'nin beklediği formata dönüştür
+            side_map = {"ALIŞ": "BUY", "SATIŞ": "SELL"}
+            
             payload = {
-                "symbol": order_data.get('symbol', '').upper(),
-                "direction": order_data.get('side', ''),
-                "pricetype": order_data.get('order_type', '').lower(),
-                "price": str(order_data.get('price', '')),
-                "lot": str(order_data.get('quantity', '')),
-                "sms": order_data.get('sms', False),
-                "email": order_data.get('email', False),
-                "subAccount": order_data.get('sub_account', '')
+                "symbol": symbol.upper(),
+                "direction": side_map.get(side, side),  # Eğer side zaten BUY/SELL ise onu kullan
+                "pricetype": order_type.lower(),
+                "price": str(price) if price is not None else "",
+                "lot": str(quantity),
+                "sms": False,  # Varsayılan olarak kapalı
+                "email": False,  # Varsayılan olarak kapalı
+                "subAccount": ""  # Varsayılan olarak boş
             }
             
             response = self.post(self.config.URL_SEND_ORDER, payload=payload, login=True)
