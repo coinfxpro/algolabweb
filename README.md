@@ -39,6 +39,10 @@ pip install -r requirements.txt
 python3 app.py
 ```
 
+Uygulama varsayılan olarak `http://localhost:8000` adresinde çalışacaktır.
+
+API dokümantasyonuna `http://localhost:8000/docs` adresinden erişebilirsiniz.
+
 ### Production Ortamı
 ```bash
 # Gunicorn ile çalıştırma (önerilen)
@@ -46,16 +50,44 @@ pip install gunicorn
 gunicorn app:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
 ```
 
-Uygulama varsayılan olarak `http://localhost:8000` adresinde çalışacaktır.
+## API Endpoints ve Örnek Kullanım
 
-## API Endpoints
+### 1. Kullanıcı Girişi
+```bash
+curl -X POST http://localhost:8000/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"your_username","password":"your_password"}'
+```
 
-- `POST /login`: Kullanıcı girişi
-- `POST /verify-sms`: SMS doğrulama
-- `GET /account-info`: Hesap bilgilerini alma
-- `POST /submit-order`: Emir gönderme
-- `POST /webhook`: TradingView webhook'u
-- `POST /logout`: Çıkış yapma
+### 2. SMS Doğrulama
+```bash
+curl -X POST http://localhost:8000/verify-sms \
+  -H "Content-Type: application/json" \
+  -d '{"sms_code":"123456"}'
+```
+
+### 3. Hesap Bilgileri
+```bash
+curl -X GET http://localhost:8000/account-info
+```
+
+### 4. Emir Gönderme
+```bash
+curl -X POST http://localhost:8000/submit-order \
+  -H "Content-Type: application/json" \
+  -d '{
+    "symbol": "GARAN",
+    "quantity": 100,
+    "side": "BUY",
+    "price": 20.50,
+    "order_type": "limit"
+  }'
+```
+
+### 5. Çıkış Yapma
+```bash
+curl -X POST http://localhost:8000/logout
+```
 
 ## Sunucu Kurulumu
 
@@ -100,14 +132,26 @@ sudo systemctl enable algolabweb
 - Reverse proxy (nginx) kullanın
 - SSL sertifikası ekleyin
 
-## API Kullanımı
+## Hata Ayıklama
 
-Örnek bir login isteği:
+1. Port 8000 zaten kullanımda hatası:
 ```bash
-curl -X POST http://localhost:8000/login \
-  -H "Content-Type: application/json" \
-  -d '{"username":"your_username","password":"your_password"}'
+sudo lsof -i :8000  # Portu kullanan process'i bul
+sudo kill -9 PID    # Process'i sonlandır
 ```
+
+2. Permission denied hatası:
+```bash
+# Dosya izinlerini düzelt
+sudo chown -R your_user:your_user /path/to/algolabweb
+chmod -R 755 /path/to/algolabweb
+```
+
+## API Dokümantasyonu
+
+Detaylı API dokümantasyonuna aşağıdaki URL'lerden erişebilirsiniz:
+- Swagger UI: `http://localhost:8000/docs`
+- ReDoc: `http://localhost:8000/redoc`
 
 ## Lisans
 
