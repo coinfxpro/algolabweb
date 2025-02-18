@@ -41,8 +41,8 @@ async def login(login_request: LoginRequest):
     global algolab_instance
     try:
         wait_for_api()
-        algolab_instance = Algolab()
-        result = algolab_instance.login(login_request.username, login_request.password)
+        algolab_instance = Algolab(username=login_request.username, password=login_request.password)
+        result = algolab_instance.login()
         
         if result.get("Status") == "Successful":
             if result.get("Result", {}).get("IsSMSRequired", False):
