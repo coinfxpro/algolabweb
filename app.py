@@ -77,12 +77,10 @@ async def get_account_info():
     
     try:
         wait_for_api()
-        account_info = algolab_instance.get_account_info()
-        positions = algolab_instance.get_positions()
-        orders = algolab_instance.get_orders()
+        positions = algolab_instance.get_instant_position()
+        orders = []  # Şu an için boş bırakıyoruz
         
         return {
-            "account_info": account_info,
             "positions": positions,
             "orders": orders
         }
